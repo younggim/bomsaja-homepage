@@ -113,7 +113,7 @@ claude --version   # Claude Code
 - 최신순으로 정렬하고 태그로 필터링합니다.
 
 ### 4.5 Contact (`/contact`)
-- 상단에 채용 메시지 카드: "세 회사와 함께 할 기회를 기다리며 오늘도 꿈을 성장시켜가고 있습니다."
+- 상단에 채용 메시지 카드: "삼성전자, LG전자, SK Hynix, 현대자동차와 함께 할 미래를 꿈꾸며 성장하고자 합니다."
 - 이메일(`bomsaja890@gmail.com`), 전화(`010-5586-2034`, 누르면 바로 전화)를 둡니다. GitHub 링크는 표시하지 않습니다(`links.github`를 비워 둠). 폼은 만들지 않습니다.
 - 실제 값은 `content/profile.ts`의 `links`와 `contactMessage`에서 관리합니다.
 
