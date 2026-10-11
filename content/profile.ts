@@ -84,10 +84,16 @@ export const profile = {
   awards: [] as string[],
   certificates: [] as string[],
 
-  // TODO: 실제 링크로 채워 주세요. 빈 문자열이면 Contact 페이지에서 숨겨집니다.
+  // 빈 문자열이면 Contact 페이지에서 숨겨집니다.
   links: {
-    email: "",
+    email: "bomsaja890@gmail.com",
+    phone: "010-5586-2034",
     github: "https://github.com/younggim",
     linkedin: "",
+  },
+
+  contactMessage: {
+    title: "SK hynix · 삼성전자 · LG전자에서 필요하시면 언제든 달려가겠습니다!",
+    body: "반도체, 전자회로, 임베디드, 통신 분야라면 어디든 배우고 기여할 준비가 되어 있습니다. 인턴, 채용, 프로젝트 제안 모두 환영합니다.",
   },
 };

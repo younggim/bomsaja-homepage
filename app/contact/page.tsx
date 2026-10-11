@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { BriefcaseBusiness, FolderGit2, Mail } from "lucide-react";
+import { BriefcaseBusiness, FolderGit2, Mail, Phone, Zap } from "lucide-react";
 import { profile } from "@/content/profile";
 import { PageHeader } from "@/components/Cards";
 
 export const metadata: Metadata = { title: "Contact" };
 
 export default function ContactPage() {
-  const { email, github, linkedin } = profile.links;
+  const { email, phone, github, linkedin } = profile.links;
   const links = [
     email && { label: "Email", value: email, href: `mailto:${email}`, icon: Mail, external: false },
+    phone && { label: "Phone", value: phone, href: `tel:${phone.replace(/-/g, "")}`, icon: Phone, external: false },
     github && { label: "GitHub", value: github.replace(/^https?:\/\//, ""), href: github, icon: FolderGit2, external: true },
     linkedin && {
       label: "LinkedIn",
@@ -26,6 +27,20 @@ export default function ContactPage() {
         title="연락하기"
         desc="회로, 임베디드, 통신 이야기라면 언제든 환영합니다. 스터디나 프로젝트 제안도 좋아요."
       />
+
+      <section className="relative mb-8 overflow-hidden rounded-2xl border-2 border-accent bg-surface p-6 sm:p-8">
+        <span aria-hidden className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-spring-soft" />
+        <div className="relative flex items-start gap-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-ink text-bg">
+            <Zap size={20} aria-hidden />
+          </span>
+          <div>
+            <h2 className="text-lg font-bold sm:text-xl">{profile.contactMessage.title}</h2>
+            <p className="mt-2 text-muted">{profile.contactMessage.body}</p>
+          </div>
+        </div>
+      </section>
+
       {links.length ? (
         <ul className="space-y-3">
           {links.map(({ label, value, href, icon: Icon, external }) => (
