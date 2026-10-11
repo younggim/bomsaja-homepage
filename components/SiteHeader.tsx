@@ -11,6 +11,8 @@ const NAV = [
   { href: "/projects", label: "Projects" },
   { href: "/notes", label: "Notes" },
   { href: "/references", label: "References" },
+  { href: "/memo", label: "Memo" },
+  { href: "/pictures", label: "Pictures" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -33,7 +35,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav aria-label="주요 메뉴" className="hidden md:flex items-center gap-1">
+        <nav aria-label="주요 메뉴" className="hidden lg:flex items-center gap-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -49,7 +51,7 @@ export function SiteHeader() {
           <ThemeToggle />
         </nav>
 
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center gap-1 lg:hidden">
           <ThemeToggle />
           <button
             type="button"
@@ -64,7 +66,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <nav aria-label="모바일 메뉴" className="border-t border-border md:hidden">
+        <nav aria-label="모바일 메뉴" className="border-t border-border lg:hidden">
           <ul className="mx-auto max-w-5xl px-4 py-2">
             {NAV.map((item) => (
               <li key={item.href}>

@@ -23,6 +23,13 @@ export interface NoteMeta {
   summary: string;
 }
 
+export interface MemoMeta {
+  slug: string;
+  title: string;
+  date: string;
+  pinned?: boolean;
+}
+
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
 // Content is read synchronously so every page can be prerendered at build time.
@@ -61,4 +68,9 @@ export function getNotes(): NoteMeta[] {
 export function getNote(slug: string) {
   const item = readCollection<NoteMeta>("notes").find((n) => n.meta.slug === slug);
   return item ? { meta: item.meta, html: render(item.body) } : null;
+}
+
+export function getMemos() {
+  const memos = readCollection<MemoMeta>("memos").map((m) => ({ meta: m.meta, html: render(m.body) }));
+  return [...memos.filter((m) => m.meta.pinned), ...memos.filter((m) => !m.meta.pinned)];
 }

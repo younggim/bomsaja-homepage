@@ -22,6 +22,8 @@ export const profile = {
   motto: "From bits to electrons.",
   role: "Computer Science student · Aspiring Electronics Engineer",
   siteUrl: "https://bomsaja-homepage.vercel.app",
+  // GitHub 저장소: 수정하기 버튼이 이 저장소의 웹 편집기를 엽니다.
+  repo: { name: "younggim/bomsaja-homepage", branch: "main" },
 
   about: [
     "컴퓨터공학을 전공하며 알고리즘과 운영체제, 웹 개발을 배웠습니다. 그런데 코드를 깊이 파고들수록 그 코드를 실제로 실행하는 회로와 전자가 궁금해졌습니다.",

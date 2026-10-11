@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getNote, getNotes } from "@/lib/content";
 import { formatDate } from "@/lib/format";
+import { editUrl } from "@/lib/edit";
+import { EditButton } from "@/components/EditButton";
 
 export function generateStaticParams() {
   return getNotes().map((n) => ({ slug: n.slug }));
@@ -23,9 +25,12 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-      <Link href="/notes" className="inline-flex items-center gap-1 text-sm text-muted hover:text-accent-ink">
-        <ArrowLeft size={14} aria-hidden /> Lab Notes
-      </Link>
+      <div className="flex items-center justify-between gap-4">
+        <Link href="/notes" className="inline-flex items-center gap-1 text-sm text-muted hover:text-accent-ink">
+          <ArrowLeft size={14} aria-hidden /> Lab Notes
+        </Link>
+        <EditButton href={editUrl(`content/notes/${meta.slug}.mdx`)} />
+      </div>
       <time dateTime={meta.date} className="mt-6 block font-mono text-sm text-muted">
         {formatDate(meta.date)}
       </time>

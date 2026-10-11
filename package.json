@@ -10,6 +10,7 @@
     "check-links": "bun scripts/check-links.ts"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.1",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.55.0",
     "marked": "^18.1.0",

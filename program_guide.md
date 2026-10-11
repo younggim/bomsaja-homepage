@@ -51,8 +51,9 @@ claude --version   # Claude Code
 | 콘텐츠 | `content/` 폴더의 **MDX** 파일 | 블로그와 학습 노트를 코드 수정 없이 추가 |
 | 아이콘 | `lucide-react` | 가벼운 SVG 아이콘 |
 | 배포 | **Vercel** (GitHub `main` 브랜치 push 시 자동 배포) | 환경 변수 없이 배포 가능 |
+| 사진 저장소 | **Vercel Blob** (`bomsaja-pictures`, 서울 icn1, public) | Pictures 페이지 전용 (4.7) |
 
-**제약 사항**: 외부 API 키나 DB, 환경 변수를 쓰지 않는 **정적 사이트**로 만듭니다. Todo 실습처럼 Environment Variables는 비워 둔 채 배포합니다.
+**제약 사항**: 기본은 외부 API 키나 DB를 쓰지 않는 **정적 사이트**입니다. **예외는 Pictures 페이지 하나**로, Vercel Blob을 쓰고 `BLOB_READ_WRITE_TOKEN` 환경 변수가 필요합니다. 이 토큰은 Blob 저장소를 프로젝트에 연결할 때 Vercel이 자동으로 넣어 주며, 로컬에서는 `vercel env pull`로 `.env.local`에 받습니다(git에는 올리지 않음).
 
 ---
 
@@ -66,7 +67,11 @@ claude --version   # Claude Code
 /notes           → Lab Notes (학습 기록 / 블로그)
 /notes/[slug]    → 노트 상세
 /references      → EE Reference Library (전자공학 참고서 모음, 12장 참고)
+/memo            → Memo (메모장)
+/pictures        → Pictures (누구나 올리고 편집하는 공용 사진첩)
 /contact         → Contact
+/api/pictures            → 사진 목록(GET), 설명 수정(PATCH), 삭제(DELETE)
+/api/pictures/upload     → 브라우저 직접 업로드용 토큰 발급(POST)
 ```
 
 ### 4.1 Home (`/`)
@@ -108,8 +113,36 @@ claude --version   # Claude Code
 - 최신순으로 정렬하고 태그로 필터링합니다.
 
 ### 4.5 Contact (`/contact`)
-- 이메일, GitHub, LinkedIn 링크만 둡니다. 폼은 만들지 않습니다(정적 사이트 유지).
-- 실제 링크 값은 `content/profile.ts`에서 관리합니다.
+- 상단에 채용 메시지 카드: "SK hynix · 삼성전자 · LG전자에서 필요하시면 언제든 달려가겠습니다!"
+- 이메일(`bomsaja890@gmail.com`), 전화(`010-5586-2034`, 누르면 바로 전화), GitHub, LinkedIn 링크를 둡니다. 폼은 만들지 않습니다.
+- 실제 값은 `content/profile.ts`의 `links`와 `contactMessage`에서 관리합니다.
+
+### 4.6 수정하기 버튼과 Memo (`/memo`)
+- **방식**: 사이트에서 바로 고치는 버튼은 **GitHub 웹 편집기**로 연결됩니다. 편집 후 **Commit changes**를 누르면 Vercel이 약 30초 안에 자동으로 다시 배포합니다. 저장소 쓰기 권한이 있는 사람만 저장할 수 있으므로 방문자는 내용을 바꿀 수 없습니다.
+- **Notes**: 목록에 `새 노트` 버튼(오늘 날짜가 들어간 frontmatter 양식으로 새 파일 생성), 상세 페이지에 `수정하기` 버튼.
+- **References**: 상단에 `자료 수정하기` 버튼(`content/references.ts` 편집).
+- **Memo**: `content/memos/*.md` 파일을 한 페이지에 모두 펼쳐 보여 줍니다. `새 메모`, 메모별 `수정하기` 버튼이 있고, frontmatter에 `pinned: true`를 넣으면 맨 위에 고정됩니다.
+  ```yaml
+  ---
+  title: "이번 주 할 일"
+  date: "2026-10-11"
+  pinned: false
+  ---
+  ```
+- 저장소 주소는 `content/profile.ts`의 `repo`(`younggim/bomsaja-homepage`, `main`)에서 관리합니다.
+
+### 4.7 Pictures (`/pictures`)
+- **누구나** 로그인 없이 사진을 올리고, 설명과 올린 사람을 편집하고, 삭제할 수 있는 공용 사진첩입니다.
+- **업로드**: 브라우저에서 Vercel Blob으로 직접 올립니다(`@vercel/blob/client`의 `upload`). 서버는 짧게 유효한 업로드 토큰만 발급합니다.
+- **메타데이터 저장 방식**: 설명과 올린 사람을 Blob 경로에 인코딩합니다.
+  `pictures/<timestamp>-<id>/<base64url({c: 설명, a: 올린 사람})>.<ext>`
+  목록 조회가 곧 단일 진실 공급원이 되고, 편집은 `rename`으로 처리하므로 별도의 목록 파일(manifest)과 CDN 캐시 불일치 문제가 없습니다.
+- **안전장치**
+  - 허용 형식: JPG, PNG, WEBP, GIF (SVG 금지: 스크립트 삽입 방지)
+  - 장당 최대 10MB, 전체 최대 300장
+  - 설명 200자, 올린 사람 30자 제한
+  - 서버에서 경로 형식을 검증해 `pictures/` 밖의 파일은 수정하거나 삭제할 수 없음
+- **운영 주의**: 누구나 삭제할 수 있으므로 장난이나 부적절한 사진이 올라올 수 있습니다. 문제가 생기면 Vercel 대시보드 → Storage → `bomsaja-pictures`에서 직접 정리하거나, 편집/삭제를 비밀번호로 보호하는 방식으로 바꿉니다.
 
 ---
 
@@ -147,13 +180,21 @@ bomsaja-homepage/
 │  ├─ notes/page.tsx
 │  ├─ notes/[slug]/page.tsx
 │  ├─ references/page.tsx
+│  ├─ memo/page.tsx
+│  ├─ pictures/page.tsx + PictureGallery.tsx
+│  ├─ api/pictures/route.ts, api/pictures/upload/route.ts
 │  └─ contact/page.tsx
-├─ components/            # Hero, Timeline, ProjectCard, NoteCard, ThemeToggle, PcbBackground, ReferenceCard
+├─ components/            # Timeline, Cards, ThemeToggle, PcbBackground, EditButton, NewFileButton
+├─ lib/
+│  ├─ content.ts          # MDX/MD 읽기 (projects, notes, memos)
+│  ├─ edit.ts             # GitHub 편집기 URL 생성
+│  └─ pictures.ts         # 사진 경로 인코딩, 제한 값
 ├─ content/
-│  ├─ profile.ts          # 이름, 소개, 링크, 기술 스택, 로드맵 (단일 진실 공급원)
+│  ├─ profile.ts          # 이름, 소개, 링크, 기술 스택, 로드맵, 저장소 (단일 진실 공급원)
 │  ├─ references.ts       # 전자공학 참고서, 강의, 도구 목록 (12장)
 │  ├─ projects/*.mdx
-│  └─ notes/*.mdx
+│  ├─ notes/*.mdx
+│  └─ memos/*.md
 ├─ public/images/
 ├─ CLAUDE.md              # Claude Code용 프로젝트 규칙 (아래 8장 참고)
 └─ program_guide.md       # 이 문서
@@ -178,6 +219,8 @@ bomsaja-homepage/
 | **7.5 References** | `content/references.ts` 작성, 분야 탭, 유형 필터, 검색, 링크 검증 | 모든 링크 응답 200, 분야별 3개 이상 등록 |
 | **8. 마감** | 메타 태그(OG 이미지, title, description), 파비콘, `bun run build` 통과 | 빌드 에러 0건 |
 | **9. 배포** | GitHub 저장소 생성, push, Vercel import | `.vercel.app` 주소에서 접속됨 |
+| **10. 편집 기능** | Notes/References 수정하기 버튼, Memo 페이지 | 버튼이 GitHub 편집기를 열고, 커밋 후 자동 반영 |
+| **11. Pictures** | Vercel Blob 저장소 생성, 업로드/편집/삭제 API, 갤러리 | 실제 Blob에서 업로드→수정→삭제 시험 통과 |
 
 ---
 
@@ -188,16 +231,22 @@ bomsaja-homepage/
 - 패키지 매니저는 반드시 Bun (npm/yarn 사용 금지)
 - 개인 정보(이름, 링크, 스택)는 content/profile.ts에만 작성하고 하드코딩 금지
 - 색상은 CSS 변수 토큰만 사용 (hex 직접 사용 금지)
-- 외부 API, 환경 변수, DB를 추가하지 않는다 (정적 사이트 유지)
-- 커밋 전 `bun run build`가 통과해야 한다
+- 외부 API, 환경 변수, DB를 추가하지 않는다 (예외: Pictures의 Vercel Blob)
+- 커밋 전 `bun run build`와 `bun run lint`가 통과해야 한다
 - UI 문구는 한국어 기본, 이름과 섹션 제목은 영어 병기
 - 참고 자료는 content/references.ts에만 추가하고, 공개 URL만 등록한다 (로그인 필요, 불법 PDF 금지)
-- 참고 자료를 추가하거나 수정한 뒤에는 링크가 실제로 열리는지 확인한다
+- 참고 자료를 추가하거나 수정한 뒤에는 `bun run check-links`로 링크가 실제로 열리는지 확인한다
+- .env.local(토큰)은 절대 커밋하지 않는다
 ```
 
 ---
 
 ## 9. 배포 절차 (코스 Deploy 레슨 방식)
+
+> **현재 배포 상태 (2026-10-11)**
+> - 사이트: https://bomsaja-homepage.vercel.app
+> - GitHub: https://github.com/younggim/bomsaja-homepage (`main` push 시 Vercel 자동 배포)
+> - Vercel 팀: `skylogics-8085s-projects`, Blob 저장소: `bomsaja-pictures`
 
 1. **GitHub 저장소 생성 및 push**: Claude Code에게 이렇게 요청합니다.
    > "내 GitHub 계정에 public `bomsaja-homepage` 저장소를 만들고 `main` 브랜치를 push한 뒤 origin을 그 저장소로 설정해줘."

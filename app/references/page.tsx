@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { learningPath, references } from "@/content/references";
 import { PageHeader } from "@/components/Cards";
+import { EditButton } from "@/components/EditButton";
+import { editUrl } from "@/lib/edit";
 import { ReferenceLibrary } from "./ReferenceLibrary";
 
 export const metadata: Metadata = {
@@ -14,11 +16,14 @@ export default function ReferencesPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-      <PageHeader
-        eyebrow="References"
-        title="EE Reference Library"
-        desc="컴퓨터공학도가 전자공학으로 건너가며 모은 참고서"
-      />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <PageHeader
+          eyebrow="References"
+          title="EE Reference Library"
+          desc="컴퓨터공학도가 전자공학으로 건너가며 모은 참고서"
+        />
+        <EditButton href={editUrl("content/references.ts")} label="자료 수정하기" />
+      </div>
 
       <section
         aria-labelledby="path-title"
