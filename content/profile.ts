@@ -84,7 +84,7 @@ export const profile = {
   // TODO: 실제 정보로 채워 주세요. 빈 배열이면 화면에 "준비 중"으로 표시됩니다.
   education: [] as string[],
   awards: [] as string[],
-  certificates: [] as string[],
+  certificates: ["ADSP (데이터분석전문가) 자격 취득 (2025)"] as string[],
 
   // 빈 문자열이면 Contact 페이지에서 숨겨집니다.
   links: {
