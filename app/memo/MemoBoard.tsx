@@ -7,6 +7,7 @@ import type { MemoDoc } from "@/lib/docs";
 import { formatDate } from "@/lib/format";
 import { MemoEditor } from "@/components/editors/MemoEditor";
 import { EditToggleButton, UndoButton } from "@/components/editors/ui";
+import { AttachmentList } from "@/components/editors/Attachments";
 
 interface Item {
   memo: MemoDoc;
@@ -63,6 +64,7 @@ export function MemoBoard({ memos }: { memos: Item[] }) {
                 <EditToggleButton onClick={() => setOpen(memo.slug)} />
               </div>
               <div className="prose-pcb mt-3" dangerouslySetInnerHTML={{ __html: html }} />
+              <AttachmentList items={memo.attachments ?? []} compact />
               {edited && (
                 <div className="mt-2 text-right">
                   <UndoButton kind="memos" slug={memo.slug} />

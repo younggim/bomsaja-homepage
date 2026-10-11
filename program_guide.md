@@ -98,6 +98,7 @@ claude --version   # Claude Code
 - 학력, 수상, 자격증 (자리만 마련하고 실제 내용은 `content/profile.ts`에서 채움).
 
 ### 4.3 Projects (`/projects`)
+- **사이트에서 바로 쓰고 고칠 수 있습니다.** 노트형 섹션(4.6)과 같은 방식이며 `새 프로젝트`, `수정하기`, 파일 첨부(회로도, 코드, 사진), 되돌리기를 지원합니다. 저장소 원본은 `content/projects/*.mdx`이고 frontmatter의 `github` 링크는 본문 끝에 "GitHub 저장소" 링크로 붙습니다. 태그 필터는 글의 태그에서 자동으로 만들어집니다.
 - 필터 태그: `All` · `Software` · `Embedded` · `Hardware`
 - 카드 구성: 썸네일, 제목, 한 줄 설명, 태그, GitHub 링크
 - 초기 예시 데이터 (placeholder, 나중에 실제 프로젝트로 교체):
@@ -123,13 +124,13 @@ claude --version   # Claude Code
 - 이메일(`bomsaja890@gmail.com`), 전화(`010-5586-2034`, 누르면 바로 전화)를 둡니다. GitHub 링크는 표시하지 않습니다(`links.github`를 비워 둠). 폼은 만들지 않습니다.
 - 실제 값은 `content/profile.ts`의 `links`와 `contactMessage`에서 관리합니다.
 
-### 4.6 사이트 안에서 바로 수정하기 (Notes, AIM&Future, AI성장, 프롬프트&루프, References, Memo)
+### 4.6 사이트 안에서 바로 수정하기 (Projects, Notes, AIM&Future, AI성장, 프롬프트&루프, References, Memo)
 - **누구나** 로그인 없이 사이트에서 바로 수정하고 저장할 수 있습니다. 저장하면 **Vercel Blob**에 들어가고 즉시 반영됩니다(재배포 없음).
 - **Notes**: 목록에 `새 노트`, 상세 페이지에 `수정하기`(제목, 날짜, 요약, 태그, Markdown 본문, 미리보기, 삭제).
 - **References**: `자료 추가`, 카드마다 연필 버튼으로 수정과 삭제(분야, 유형, 난이도, 언어, 상태, 링크, 메모).
 - **Memo** (`/memo`): `새 메모`, 메모별 `수정하기`, `📌 맨 위에 고정`, 삭제.
 - **저장 구조**: 저장할 때마다 불변 버전 파일을 하나 만듭니다.
-  `edits/<notes|aims|ai|prompts|memos|references>/<slug>/<timestamp>-<rand>.json` → `{ data }` 또는 `{ deleted: true }`
+  `edits/<notes|aims|ai|prompts|projects|memos|references>/<slug>/<timestamp>-<rand>.json` → `{ data }` 또는 `{ deleted: true }`
   화면에는 저장소의 원본 파일(`content/notes`, `content/memos`, `content/references.ts`)에 **가장 최신 버전을 덮어** 보여 줍니다. 버전마다 경로가 달라 CDN 캐시 문제가 없습니다.
 - **되돌리기**: 수정된 문서에는 `이전 버전으로 되돌리기` 링크가 보입니다. 가장 최신 버전 파일을 지워 직전 상태(또는 저장소 원본)로 돌아갑니다. 삭제도 버전으로 기록되므로 되돌리기로 복구할 수 있습니다.
 - **안전장치**
@@ -153,9 +154,9 @@ claude --version   # Claude Code
 - 저장소 원본: `content/ai-growth/*.md`, `content/prompt-loop/*.md`. Blob 버전: `edits/ai/...`, `edits/prompts/...`.
 - 새 섹션을 더 만들 때는 `lib/docs.ts`의 `NoteKind`·`NOTE_KINDS`, `lib/content.ts`의 `NOTE_DIRS`, `lib/store.ts`의 `REV_RE`에 추가하고, `components/notes/pages.tsx`의 `NoteIndexPage`·`NoteDocPage`로 라우트 두 개를 만들면 됩니다.
 
-### 4.10 첨부 자료 (모든 노트형 페이지 공통)
-- Notes, AIM&Future, AI성장, 프롬프트&루프 연구의 편집 화면에 **파일 추가** 버튼이 있습니다. 파일을 고르면 바로 Blob에 올라가고, **저장**하면 문서에 붙습니다. 문서 하단에 `첨부 자료` 목록(이미지는 미리보기, 그 외는 확장자 아이콘)이 보이고, 카드에는 `📎 첨부 N개`가 표시됩니다.
-- 경로: `files/<kind>/<slug>/<timestamp>-<영문화한 파일명>.<ext>` (원래 파일명은 문서에 따로 저장)
+### 4.10 첨부 자료 (About·Contact를 제외한 모든 글쓰기 페이지)
+- **Projects, AIM&Future, AI성장, 프롬프트&루프 연구, Notes, Memo, References**의 편집 화면에 **파일 추가** 버튼이 있습니다(Pictures는 사진 업로드 페이지). Memo와 References는 카드 안에 첨부 목록이 작게 표시됩니다. 파일을 고르면 바로 Blob에 올라가고, **저장**하면 문서에 붙습니다. 문서 하단에 `첨부 자료` 목록(이미지는 미리보기, 그 외는 확장자 아이콘)이 보이고, 카드에는 `📎 첨부 N개`가 표시됩니다.
+- 경로: `files/<notes|aims|ai|prompts|projects|memos|references>/<slug 또는 자료 id>/<timestamp>-<영문화한 파일명>.<ext>` (원래 파일명은 문서에 따로 저장)
 - **허용 형식**: PDF, PNG, JPG, WEBP, GIF, TXT, MD, CSV, JSON, IPYNB, PY, ZIP, DOCX, PPTX, XLSX, HWP
 - **막는 형식**: HTML, SVG, JS 등 브라우저에서 실행될 수 있는 파일
 - **제한**: 파일당 20MB, 문서당 20개. 서버는 첨부 URL이 이 Blob 저장소의 `files/` 경로인지 검사하고, 다른 사이트 링크는 버립니다.
@@ -259,6 +260,7 @@ bomsaja-homepage/
 | **10. 편집 기능** | Notes/References/Memo 사이트 내 수정·저장 (Vercel Blob 버전 저장, 되돌리기) | 저장 즉시 반영, XSS 차단·되돌리기 시험 통과 |
 | **12. AIM&Future** | Projects 옆 메뉴, 노트형 쓰기·수정 페이지 | 생성·수정·되돌리기 시험 통과 |
 | **13. AI성장·프롬프트&루프** | 노트형 섹션 2개 추가, 모든 노트형 페이지에 파일 첨부 | 업로드·첨부 표시·외부 URL 차단·SVG/HTML 거부 시험 통과 |
+| **15. 전 페이지 첨부** | Projects를 노트형으로 전환, Memo·References 첨부 | 프로젝트·메모·참고 자료 첨부 저장·표시·되돌리기 시험 통과 |
 | **11. Pictures** | Vercel Blob 저장소 생성, 업로드/편집/삭제 API, 갤러리 | 실제 Blob에서 업로드→수정→삭제 시험 통과 |
 
 ---

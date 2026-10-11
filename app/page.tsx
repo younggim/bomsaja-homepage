@@ -3,12 +3,11 @@ import { ArrowRight } from "lucide-react";
 import { profile } from "@/content/profile";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { getProjects } from "@/lib/content";
 import { loadNotes, loadReferences } from "@/lib/store";
 import { noteMeta } from "@/lib/docs";
 import { PcbBackground } from "@/components/PcbBackground";
 import { Timeline } from "@/components/Timeline";
-import { NoteCard, ProjectCard, ReferenceCard } from "@/components/Cards";
+import { NoteCard, ReferenceCard } from "@/components/Cards";
 
 function SectionTitle({ title, href, eyebrow }: { title: string; href?: string; eyebrow: string }) {
   return (
@@ -44,6 +43,18 @@ async function RecentNotes() {
   );
 }
 
+async function RecentProjects() {
+  await connection();
+  const { notes } = await loadNotes("projects");
+  return (
+    <div className={GRID}>
+      {notes.slice(0, 3).map(noteMeta).map((n) => (
+        <NoteCard key={n.slug} note={n} basePath="/projects" />
+      ))}
+    </div>
+  );
+}
+
 async function NowReading() {
   await connection();
   const { items } = await loadReferences();
@@ -59,7 +70,6 @@ async function NowReading() {
 }
 
 export default function Home() {
-  const projects = getProjects().slice(0, 3);
 
   return (
     <>
@@ -106,11 +116,9 @@ export default function Home() {
 
         <section>
           <SectionTitle eyebrow="Projects" title="최근 프로젝트" href="/projects" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p) => (
-              <ProjectCard key={p.slug} project={p} />
-            ))}
-          </div>
+          <Suspense fallback={<CardsFallback />}>
+            <RecentProjects />
+          </Suspense>
         </section>
 
         <section>

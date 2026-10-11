@@ -8,7 +8,7 @@ import { getRepoMemos, getRepoNotes } from "./content";
 import type { DocKind, MemoDoc, NoteDoc, NoteKind } from "./docs";
 
 const PREFIX = "edits/";
-const REV_RE = /^edits\/(notes|aims|ai|prompts|memos|references)\/([a-z0-9-]+)\/(\d{13})-[a-z0-9]+\.json$/;
+const REV_RE = /^edits\/(notes|aims|ai|prompts|projects|memos|references)\/([a-z0-9-]+)\/(\d{13})-[a-z0-9]+\.json$/;
 
 interface Revision {
   slug: string;

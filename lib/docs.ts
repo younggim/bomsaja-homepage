@@ -34,12 +34,13 @@ export interface MemoDoc {
   date: string;
   pinned: boolean;
   body: string;
+  attachments?: Attachment[];
 }
 export type MemoMeta = Omit<MemoDoc, "body">;
 
-export type NoteKind = "notes" | "aims" | "ai" | "prompts";
+export type NoteKind = "notes" | "aims" | "ai" | "prompts" | "projects";
 export type DocKind = NoteKind | "memos" | "references";
-export const NOTE_KIND_IDS: NoteKind[] = ["notes", "aims", "ai", "prompts"];
+export const NOTE_KIND_IDS: NoteKind[] = ["notes", "aims", "ai", "prompts", "projects"];
 
 // Note-shaped collections share the editor and pages; only paths and labels differ.
 export const NOTE_KINDS: Record<NoteKind, { path: string; title: string; item: string; itemObj: string; itemSubj: string }> = {
@@ -47,6 +48,7 @@ export const NOTE_KINDS: Record<NoteKind, { path: string; title: string; item: s
   aims: { path: "/aim", title: "AIM&Future", item: "글", itemObj: "글을", itemSubj: "글이" },
   ai: { path: "/ai-growth", title: "AI성장", item: "자료", itemObj: "자료를", itemSubj: "자료가" },
   prompts: { path: "/prompt-loop", title: "프롬프트&루프 연구", item: "연구 노트", itemObj: "연구 노트를", itemSubj: "연구 노트가" },
+  projects: { path: "/projects", title: "Projects", item: "프로젝트", itemObj: "프로젝트를", itemSubj: "프로젝트가" },
 };
 
 // Attachments: files uploaded to Blob under files/<kind>/<slug>/<timestamp>-<safe-name>.
@@ -71,14 +73,14 @@ export const FILE_TYPES: Record<string, string> = {
   hwp: "application/x-hwp",
 };
 export const FILE_PATH_RE = new RegExp(
-  `^files/(${NOTE_KIND_IDS.join("|")})/[a-z0-9][a-z0-9-]{1,79}/\\d{13}-[A-Za-z0-9._-]{1,100}$`,
+  `^files/(${[...NOTE_KIND_IDS, "memos", "references"].join("|")})/[a-z0-9][a-z0-9-]{1,79}/\\d{13}-[A-Za-z0-9._-]{1,100}$`,
 );
 
 export function fileExt(name: string): string {
   return name.split(".").pop()?.toLowerCase() ?? "";
 }
 
-export function filePathname(kind: NoteKind, slug: string, name: string): string {
+export function filePathname(kind: DocKind, slug: string, name: string): string {
   const ext = fileExt(name);
   const base = name
     .slice(0, name.length - ext.length - 1)
@@ -89,7 +91,7 @@ export function filePathname(kind: NoteKind, slug: string, name: string): string
   return `files/${kind}/${slug}/${Date.now()}-${base}.${ext}`;
 }
 
-function cleanAttachments(v: unknown): Attachment[] {
+export function cleanAttachments(v: unknown): Attachment[] {
   if (!Array.isArray(v)) return [];
   return v
     .slice(0, FILE_LIMITS.perDoc)
@@ -157,6 +159,7 @@ export function cleanMemo(input: Partial<MemoDoc>, slug: string): MemoDoc {
     date: cleanDate(input.date),
     pinned: Boolean(input.pinned),
     body: typeof input.body === "string" ? input.body.slice(0, LIMITS.body) : "",
+    attachments: cleanAttachments(input.attachments),
   };
 }
 
@@ -188,6 +191,7 @@ export function cleanReference(input: Partial<Reference>): Reference {
     lang: input.lang === "ko" ? "ko" : "en",
     note: str(input.note, LIMITS.refText),
     status: STATUSES.includes(input.status as RefStatus) ? (input.status as RefStatus) : undefined,
+    attachments: cleanAttachments(input.attachments),
   };
 }
 

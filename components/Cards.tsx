@@ -1,35 +1,9 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { ProjectMeta } from "@/lib/content";
 import type { NoteMeta } from "@/lib/docs";
 import { formatDate } from "@/lib/format";
+import { AttachmentList } from "@/components/editors/Attachments";
 import { refTypes, type Reference } from "@/content/references";
-
-const TAG_STYLE: Record<string, string> = {
-  Software: "border-accent/40 text-accent-ink",
-  Embedded: "border-trace/60 text-fg",
-  Hardware: "border-spring text-fg bg-spring-soft",
-};
-
-export function ProjectCard({ project }: { project: ProjectMeta }) {
-  return (
-    <Link
-      href={`/projects/${project.slug}`}
-      className="group flex h-full flex-col rounded-xl border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:border-accent"
-    >
-      <div className="flex flex-wrap items-center gap-1.5">
-        {project.tags.map((t) => (
-          <span key={t} className={`rounded-full border px-2 py-0.5 text-xs ${TAG_STYLE[t] ?? "border-border"}`}>
-            {t}
-          </span>
-        ))}
-        {project.sample && <span className="text-xs text-muted">· 예시</span>}
-      </div>
-      <h3 className="mt-3 font-mono text-lg font-bold group-hover:text-accent-ink">{project.title}</h3>
-      <p className="mt-2 flex-1 text-sm text-muted">{project.summary}</p>
-    </Link>
-  );
-}
 
 export function NoteCard({ note, basePath = "/notes" }: { note: NoteMeta; basePath?: string }) {
   return (
@@ -62,8 +36,14 @@ const STATUS_STYLE: Record<string, string> = {
 
 export function ReferenceCard({ item }: { item: Reference }) {
   const type = refTypes.find((t) => t.id === item.type)!;
-  const body = (
-    <>
+  // The card is a container; when there is a URL the title's ::after stretches over the
+  // whole card so it stays clickable, while attachment links sit above it (z-10).
+  return (
+    <div
+      className={`group relative flex h-full flex-col rounded-xl border border-border bg-surface p-5 ${
+        item.url ? "transition hover:-translate-y-0.5 hover:border-accent" : ""
+      }`}
+    >
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
         <span aria-hidden>{type.icon}</span>
         <span className="text-muted">{type.label}</span>
@@ -73,28 +53,29 @@ export function ReferenceCard({ item }: { item: Reference }) {
           <span className={`rounded-full border px-2 py-0.5 ${STATUS_STYLE[item.status]}`}>{item.status}</span>
         )}
       </div>
-      <h3 className="mt-3 flex items-start gap-1 font-bold group-hover:text-accent-ink">
-        <span>{item.title}</span>
-        {item.url && <ArrowUpRight size={16} aria-hidden className="mt-1 shrink-0" />}
+      <h3 className="mt-3 font-bold group-hover:text-accent-ink">
+        {item.url ? (
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-1 after:absolute after:inset-0 after:content-['']"
+          >
+            <span>{item.title}</span>
+            <ArrowUpRight size={16} aria-hidden className="mt-1 shrink-0" />
+            <span className="sr-only"> (새 탭에서 열림)</span>
+          </a>
+        ) : (
+          item.title
+        )}
       </h3>
       {item.author && <p className="mt-0.5 text-sm text-muted">{item.author}</p>}
       <p className="mt-2 flex-1 text-sm">{item.note}</p>
-      {!item.url && <p className="mt-2 text-xs text-muted">교재 (도서관, 서점에서 확인)</p>}
-    </>
-  );
-  const cls = "group flex h-full flex-col rounded-xl border border-border bg-surface p-5";
-  return item.url ? (
-    <a
-      href={item.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`${cls} transition hover:-translate-y-0.5 hover:border-accent`}
-    >
-      {body}
-      <span className="sr-only"> (새 탭에서 열림)</span>
-    </a>
-  ) : (
-    <div className={cls}>{body}</div>
+      {!item.url && !item.attachments?.length && (
+        <p className="mt-2 text-xs text-muted">교재 (도서관, 서점에서 확인)</p>
+      )}
+      <AttachmentList items={item.attachments ?? []} compact />
+    </div>
   );
 }
 

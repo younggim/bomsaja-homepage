@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { postContent, localToday } from "@/lib/api";
-import { LIMITS, type MemoDoc } from "@/lib/docs";
+import { LIMITS, newSlug, type Attachment, type MemoDoc } from "@/lib/docs";
+import { AttachmentsField } from "./Attachments";
 import { ErrorText, Field, GhostButton, inputCls, MarkdownField, PrimaryButton } from "./ui";
 
 export function MemoEditor({
@@ -19,6 +20,9 @@ export function MemoEditor({
   const [date, setDate] = useState(memo?.date ?? localToday());
   const [pinned, setPinned] = useState(memo?.pinned ?? false);
   const [body, setBody] = useState(memo?.body ?? "");
+  const [attachments, setAttachments] = useState<Attachment[]>(memo?.attachments ?? []);
+  const [slug] = useState(() => memo?.slug ?? newSlug());
+  const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -38,7 +42,7 @@ export function MemoEditor({
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return setError("제목을 입력해 주세요.");
-    run(() => postContent({ kind: "memos", slug: memo?.slug, data: { title, date, pinned, body } }));
+    run(() => postContent({ kind: "memos", slug, data: { title, date, pinned, body, attachments } }));
   };
 
   const remove = () => {
@@ -62,10 +66,11 @@ export function MemoEditor({
         📌 맨 위에 고정
       </label>
       <MarkdownField value={body} onChange={setBody} rows={8} />
+      <AttachmentsField kind="memos" slug={slug} value={attachments} onChange={setAttachments} onBusy={setUploading} />
       <ErrorText error={error} />
       <div className="flex flex-wrap items-center gap-2">
-        <PrimaryButton type="submit" busy={busy}>
-          {busy ? "저장 중…" : "저장"}
+        <PrimaryButton type="submit" busy={busy} disabled={uploading}>
+          {busy ? "저장 중…" : uploading ? "업로드 중…" : "저장"}
         </PrimaryButton>
         <GhostButton onClick={onCancel} disabled={busy}>
           <X size={14} aria-hidden /> 취소

@@ -77,10 +77,7 @@ export function ReferenceLibrary({ items, edited }: { items: Reference[]; edited
   };
 
   const saveItem = (ref: Reference) => {
-    if (editing === "new") {
-      const id = (ref.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "ref").slice(0, 40);
-      return commit([{ ...ref, id: `${id}-${Date.now().toString(36)}` }, ...items]);
-    }
+    if (editing === "new") return commit([ref, ...items]);
     commit(items.map((r) => (r.id === editing ? { ...ref, id: r.id } : r)));
   };
 
@@ -234,7 +231,7 @@ export function ReferenceLibrary({ items, edited }: { items: Reference[]; edited
                   onClick={() => openEditor(r.id)}
                   aria-label={`${r.title} 수정하기`}
                   title="수정하기"
-                  className="absolute bottom-3 right-3 rounded-md border border-border bg-surface p-1.5 text-muted transition hover:border-accent hover:text-accent-ink"
+                  className="absolute bottom-3 right-3 z-20 rounded-md border border-border bg-surface p-1.5 text-muted transition hover:border-accent hover:text-accent-ink"
                 >
                   <PencilLine size={14} aria-hidden />
                 </button>

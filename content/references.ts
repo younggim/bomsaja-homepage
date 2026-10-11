@@ -11,6 +11,8 @@ export type RefType = "book" | "course" | "tool" | "paper" | "practice";
 export type RefLevel = "입문" | "중급" | "심화";
 export type RefStatus = "읽는 중" | "완료" | "예정";
 
+import type { Attachment } from "@/lib/docs";
+
 export interface Reference {
   id: string;
   title: string;
@@ -22,6 +24,7 @@ export interface Reference {
   lang: "ko" | "en";
   note: string;
   status?: RefStatus;
+  attachments?: Attachment[];
 }
 
 export const categories: { id: RefCategory; label: string; desc: string; cafe: string }[] = [

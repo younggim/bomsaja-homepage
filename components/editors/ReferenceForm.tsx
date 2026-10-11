@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { categories, levels, refTypes, type Reference } from "@/content/references";
-import { LIMITS } from "@/lib/docs";
+import { LIMITS, newSlug, type Attachment } from "@/lib/docs";
+import { AttachmentsField } from "./Attachments";
 import { ErrorText, Field, GhostButton, inputCls, PrimaryButton } from "./ui";
 
 const EMPTY: Reference = {
@@ -35,7 +36,11 @@ export function ReferenceForm({
   onCancel: () => void;
   onDelete?: () => void;
 }) {
-  const [ref, setRef] = useState<Reference>(item ?? { ...EMPTY, category: defaultCategory ?? EMPTY.category });
+  // New items get their id up front so attachments can be uploaded before the first save.
+  const [ref, setRef] = useState<Reference>(
+    () => item ?? { ...EMPTY, id: `ref-${newSlug()}`, category: defaultCategory ?? EMPTY.category },
+  );
+  const [uploading, setUploading] = useState(false);
   const set = <K extends keyof Reference>(key: K, value: Reference[K]) => setRef((r) => ({ ...r, [key]: value }));
   const [localError, setLocalError] = useState("");
 
@@ -115,10 +120,17 @@ export function ReferenceForm({
           <input value={ref.note} maxLength={LIMITS.refText} onChange={(e) => set("note", e.target.value)} className={inputCls} />
         </Field>
       </div>
+      <AttachmentsField
+        kind="references"
+        slug={ref.id}
+        value={ref.attachments ?? []}
+        onChange={(next: Attachment[]) => set("attachments", next)}
+        onBusy={setUploading}
+      />
       <ErrorText error={localError || error} />
       <div className="flex flex-wrap gap-2">
-        <PrimaryButton type="submit" busy={busy}>
-          {busy ? "저장 중…" : "저장"}
+        <PrimaryButton type="submit" busy={busy} disabled={uploading}>
+          {busy ? "저장 중…" : uploading ? "업로드 중…" : "저장"}
         </PrimaryButton>
         <GhostButton onClick={onCancel} disabled={busy}>
           <X size={14} aria-hidden /> 취소

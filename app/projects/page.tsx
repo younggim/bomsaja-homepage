@@ -1,19 +1,14 @@
 import type { Metadata } from "next";
-import { getProjects } from "@/lib/content";
-import { PageHeader } from "@/components/Cards";
-import { ProjectsFilter } from "./ProjectsFilter";
+import { NoteIndexPage } from "@/components/notes/pages";
 
 export const metadata: Metadata = { title: "Projects" };
 
-export default function ProjectsPage() {
+export default function Page() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-      <PageHeader
-        eyebrow="Projects"
-        title="만든 것들"
-        desc="소프트웨어에서 시작해 임베디드와 하드웨어로 넓혀 가는 프로젝트 기록입니다."
-      />
-      <ProjectsFilter projects={getProjects()} />
-    </div>
+    <NoteIndexPage
+      kind="projects"
+      title="만든 것들"
+      desc="소프트웨어에서 시작해 임베디드와 하드웨어로 넓혀 가는 프로젝트 기록입니다. 누구나 글과 파일(회로도, 코드, 사진 등)을 함께 올리고 고칠 수 있어요."
+    />
   );
 }

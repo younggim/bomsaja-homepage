@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { Download, FileText, Image as ImageIcon, Loader2, Paperclip, X } from "lucide-react";
-import { FILE_LIMITS, FILE_TYPES, fileExt, filePathname, type Attachment, type NoteKind } from "@/lib/docs";
+import { FILE_LIMITS, FILE_TYPES, fileExt, filePathname, type Attachment, type DocKind } from "@/lib/docs";
 
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -23,7 +23,7 @@ export function AttachmentsField({
   onChange,
   onBusy,
 }: {
-  kind: NoteKind;
+  kind: DocKind;
   slug: string;
   value: Attachment[];
   onChange: (next: Attachment[]) => void;
@@ -121,14 +121,18 @@ function FileIcon({ type }: { type: string }) {
 }
 
 // Read-only list shown on the document page.
-export function AttachmentList({ items }: { items: Attachment[] }) {
+// `compact` is for lists inside cards (memos, references); the default suits a full document page.
+export function AttachmentList({ items, compact = false }: { items: Attachment[]; compact?: boolean }) {
   if (!items.length) return null;
   return (
-    <section aria-labelledby="attachments-title" className="mt-10 rounded-xl border border-border bg-surface p-5">
-      <h2 id="attachments-title" className="flex items-center gap-2 font-bold">
+    <section
+      aria-label="첨부 자료"
+      className={compact ? "relative z-10 mt-3" : "mt-10 rounded-xl border border-border bg-surface p-5"}
+    >
+      <h2 className={`flex items-center gap-2 font-bold ${compact ? "text-sm" : ""}`}>
         <Paperclip size={16} aria-hidden /> 첨부 자료 <span className="font-mono text-sm text-muted">{items.length}</span>
       </h2>
-      <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+      <ul className={`mt-2 grid gap-2 ${compact ? "" : "sm:grid-cols-2"}`}>
         {items.map((a) => (
           <li key={a.url}>
             <a
