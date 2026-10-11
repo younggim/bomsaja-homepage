@@ -90,7 +90,7 @@ export const profile = {
   links: {
     email: "bomsaja890@gmail.com",
     phone: "010-5586-2034",
-    github: "https://github.com/younggim",
+    github: "",
     linkedin: "",
   },
 

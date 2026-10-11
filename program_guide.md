@@ -114,7 +114,7 @@ claude --version   # Claude Code
 
 ### 4.5 Contact (`/contact`)
 - 상단에 채용 메시지 카드: "SK hynix · 삼성전자 · LG전자에서 필요하시면 언제든 달려가겠습니다!"
-- 이메일(`bomsaja890@gmail.com`), 전화(`010-5586-2034`, 누르면 바로 전화), GitHub, LinkedIn 링크를 둡니다. 폼은 만들지 않습니다.
+- 이메일(`bomsaja890@gmail.com`), 전화(`010-5586-2034`, 누르면 바로 전화)를 둡니다. GitHub 링크는 표시하지 않습니다(`links.github`를 비워 둠). 폼은 만들지 않습니다.
 - 실제 값은 `content/profile.ts`의 `links`와 `contactMessage`에서 관리합니다.
 
 ### 4.6 수정하기 버튼과 Memo (`/memo`)
