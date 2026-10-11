@@ -66,6 +66,8 @@ claude --version   # Claude Code
 /projects/[slug] → 프로젝트 상세
 /aim             → AIM&Future (목표와 미래, 누구나 쓰고 고치기)
 /aim/[slug]      → AIM&Future 글 상세
+/ai-growth       → AI성장 (AI 학습·활용 기록과 자료, 파일 첨부)
+/prompt-loop     → 프롬프트&루프 연구 (프롬프트·에이전트 루프 실험 노트, 파일 첨부)
 /notes           → Lab Notes (학습 기록 / 블로그)
 /notes/[slug]    → 노트 상세
 /references      → EE Reference Library (전자공학 참고서 모음, 12장 참고)
@@ -74,7 +76,8 @@ claude --version   # Claude Code
 /contact         → Contact
 /api/pictures            → 사진 목록(GET), 설명 수정(PATCH), 삭제(DELETE)
 /api/pictures/upload     → 브라우저 직접 업로드용 토큰 발급(POST)
-/api/content             → Notes/AIM&Future/Memo/References 저장, 삭제, 되돌리기(POST)
+/api/content             → Notes/AIM&Future/AI성장/프롬프트&루프/Memo/References 저장, 삭제, 되돌리기(POST)
+/api/files/upload        → 첨부 파일 브라우저 직접 업로드용 토큰 발급(POST)
 ```
 
 ### 4.1 Home (`/`)
@@ -120,13 +123,13 @@ claude --version   # Claude Code
 - 이메일(`bomsaja890@gmail.com`), 전화(`010-5586-2034`, 누르면 바로 전화)를 둡니다. GitHub 링크는 표시하지 않습니다(`links.github`를 비워 둠). 폼은 만들지 않습니다.
 - 실제 값은 `content/profile.ts`의 `links`와 `contactMessage`에서 관리합니다.
 
-### 4.6 사이트 안에서 바로 수정하기 (Notes, AIM&Future, References, Memo)
+### 4.6 사이트 안에서 바로 수정하기 (Notes, AIM&Future, AI성장, 프롬프트&루프, References, Memo)
 - **누구나** 로그인 없이 사이트에서 바로 수정하고 저장할 수 있습니다. 저장하면 **Vercel Blob**에 들어가고 즉시 반영됩니다(재배포 없음).
 - **Notes**: 목록에 `새 노트`, 상세 페이지에 `수정하기`(제목, 날짜, 요약, 태그, Markdown 본문, 미리보기, 삭제).
 - **References**: `자료 추가`, 카드마다 연필 버튼으로 수정과 삭제(분야, 유형, 난이도, 언어, 상태, 링크, 메모).
 - **Memo** (`/memo`): `새 메모`, 메모별 `수정하기`, `📌 맨 위에 고정`, 삭제.
 - **저장 구조**: 저장할 때마다 불변 버전 파일을 하나 만듭니다.
-  `edits/<notes|aims|memos|references>/<slug>/<timestamp>-<rand>.json` → `{ data }` 또는 `{ deleted: true }`
+  `edits/<notes|aims|ai|prompts|memos|references>/<slug>/<timestamp>-<rand>.json` → `{ data }` 또는 `{ deleted: true }`
   화면에는 저장소의 원본 파일(`content/notes`, `content/memos`, `content/references.ts`)에 **가장 최신 버전을 덮어** 보여 줍니다. 버전마다 경로가 달라 CDN 캐시 문제가 없습니다.
 - **되돌리기**: 수정된 문서에는 `이전 버전으로 되돌리기` 링크가 보입니다. 가장 최신 버전 파일을 지워 직전 상태(또는 저장소 원본)로 돌아갑니다. 삭제도 버전으로 기록되므로 되돌리기로 복구할 수 있습니다.
 - **안전장치**
@@ -142,6 +145,21 @@ claude --version   # Claude Code
 - **Notes와 똑같이** 쓰고 고칩니다: `새 글`, `수정하기`(제목, 날짜, 요약, 태그, Markdown 본문, 미리보기), 삭제, 이전 버전으로 되돌리기. 저장은 4.6과 같은 방식(Vercel Blob 버전, `edits/aims/...`)입니다.
 - 저장소 원본은 `content/aims/*.md`이며, 시작용 초안 `my-aim.md`(최종 목표, 1·3·10년 목표, 왜 이 길인가)가 들어 있습니다.
 - 구현: Notes와 AIM&Future는 `components/notes/`의 공용 컴포넌트(`NotesBoard`, `NotesFilter`, `NoteView`)와 `NoteEditor`를 `kind`("notes" | "aims")로 나눠 씁니다. 경로와 이름표는 `lib/docs.ts`의 `NOTE_KINDS`에서 관리합니다.
+
+### 4.9 AI성장 (`/ai-growth`), 프롬프트&루프 연구 (`/prompt-loop`)
+- 메뉴에서 AIM&Future 다음에 있습니다. 둘 다 **Notes와 같은 방식**으로 누구나 쓰고, 고치고, 지우고, 되돌릴 수 있습니다.
+- **AI성장**: AI 강의, 논문, 프로젝트, 회로 공부에 AI를 활용한 경험을 모읍니다. 버튼 이름은 `새 자료`.
+- **프롬프트&루프 연구**: 프롬프트 설계와 에이전트 루프 실험을 기록합니다. 버튼 이름은 `새 연구 노트`. 시작용 양식(실험 목표, 프롬프트, 루프 설계, 결과 표, 배운 점)이 들어 있습니다.
+- 저장소 원본: `content/ai-growth/*.md`, `content/prompt-loop/*.md`. Blob 버전: `edits/ai/...`, `edits/prompts/...`.
+- 새 섹션을 더 만들 때는 `lib/docs.ts`의 `NoteKind`·`NOTE_KINDS`, `lib/content.ts`의 `NOTE_DIRS`, `lib/store.ts`의 `REV_RE`에 추가하고, `components/notes/pages.tsx`의 `NoteIndexPage`·`NoteDocPage`로 라우트 두 개를 만들면 됩니다.
+
+### 4.10 첨부 자료 (모든 노트형 페이지 공통)
+- Notes, AIM&Future, AI성장, 프롬프트&루프 연구의 편집 화면에 **파일 추가** 버튼이 있습니다. 파일을 고르면 바로 Blob에 올라가고, **저장**하면 문서에 붙습니다. 문서 하단에 `첨부 자료` 목록(이미지는 미리보기, 그 외는 확장자 아이콘)이 보이고, 카드에는 `📎 첨부 N개`가 표시됩니다.
+- 경로: `files/<kind>/<slug>/<timestamp>-<영문화한 파일명>.<ext>` (원래 파일명은 문서에 따로 저장)
+- **허용 형식**: PDF, PNG, JPG, WEBP, GIF, TXT, MD, CSV, JSON, IPYNB, PY, ZIP, DOCX, PPTX, XLSX, HWP
+- **막는 형식**: HTML, SVG, JS 등 브라우저에서 실행될 수 있는 파일
+- **제한**: 파일당 20MB, 문서당 20개. 서버는 첨부 URL이 이 Blob 저장소의 `files/` 경로인지 검사하고, 다른 사이트 링크는 버립니다.
+- 첨부를 빼거나 문서를 지워도 파일 자체는 되돌리기를 위해 남겨 둡니다. 정리는 Vercel 대시보드 → Storage → `bomsaja-pictures`의 `files/`에서 합니다.
 
 ### 4.7 Pictures (`/pictures`)
 - **누구나** 로그인 없이 사진을 올리고, 설명과 올린 사람을 편집하고, 삭제할 수 있는 공용 사진첩입니다.
@@ -192,12 +210,13 @@ bomsaja-homepage/
 │  ├─ notes/page.tsx
 │  ├─ notes/[slug]/page.tsx
 │  ├─ references/page.tsx
-│  ├─ aim/page.tsx, aim/[slug]/page.tsx
+│  ├─ aim/, ai-growth/, prompt-loop/  # 각각 page.tsx + [slug]/page.tsx (components/notes/pages.tsx 사용)
+│  ├─ api/files/upload/route.ts
 │  ├─ memo/page.tsx
 │  ├─ pictures/page.tsx + PictureGallery.tsx
 │  ├─ api/pictures/route.ts, api/pictures/upload/route.ts
 │  └─ contact/page.tsx
-├─ components/            # Timeline, Cards, ThemeToggle, PcbBackground, editors/(NoteEditor, MemoEditor, ReferenceForm), notes/(NotesBoard, NotesFilter, NoteView)
+├─ components/            # Timeline, Cards, ThemeToggle, PcbBackground, editors/(NoteEditor, MemoEditor, ReferenceForm), notes/(NotesBoard, NotesFilter, NoteView, pages), editors/Attachments
 ├─ lib/
 │  ├─ content.ts          # MDX/MD 읽기 (projects, notes, memos)
 │  ├─ docs.ts             # 편집 문서 타입과 검증
@@ -210,6 +229,8 @@ bomsaja-homepage/
 │  ├─ projects/*.mdx
 │  ├─ notes/*.mdx
 │  ├─ aims/*.md           # AIM&Future 원본
+│  ├─ ai-growth/*.md      # AI성장 원본
+│  ├─ prompt-loop/*.md    # 프롬프트&루프 연구 원본
 │  └─ memos/*.md
 ├─ public/images/
 ├─ CLAUDE.md              # Claude Code용 프로젝트 규칙 (아래 8장 참고)
@@ -237,6 +258,7 @@ bomsaja-homepage/
 | **9. 배포** | GitHub 저장소 생성, push, Vercel import | `.vercel.app` 주소에서 접속됨 |
 | **10. 편집 기능** | Notes/References/Memo 사이트 내 수정·저장 (Vercel Blob 버전 저장, 되돌리기) | 저장 즉시 반영, XSS 차단·되돌리기 시험 통과 |
 | **12. AIM&Future** | Projects 옆 메뉴, 노트형 쓰기·수정 페이지 | 생성·수정·되돌리기 시험 통과 |
+| **13. AI성장·프롬프트&루프** | 노트형 섹션 2개 추가, 모든 노트형 페이지에 파일 첨부 | 업로드·첨부 표시·외부 URL 차단·SVG/HTML 거부 시험 통과 |
 | **11. Pictures** | Vercel Blob 저장소 생성, 업로드/편집/삭제 API, 갤러리 | 실제 Blob에서 업로드→수정→삭제 시험 통과 |
 
 ---

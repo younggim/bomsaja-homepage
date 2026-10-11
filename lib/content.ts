@@ -23,6 +23,7 @@ const CONTENT_DIR = path.join(process.cwd(), "content");
 // Repo content is read synchronously; it is the seed that Blob edits (lib/store.ts) override.
 function readCollection<T>(dir: string): { meta: T; body: string }[] {
   const full = path.join(CONTENT_DIR, dir);
+  if (!fs.existsSync(full)) return [];
   return fs
     .readdirSync(full)
     .filter((f) => f.endsWith(".mdx") || f.endsWith(".md"))
@@ -45,7 +46,11 @@ export function getProject(slug: string) {
   return item ? { meta: item.meta, html: renderMarkdown(item.body) } : null;
 }
 
-export function getRepoNotes(dir: "notes" | "aims" = "notes"): NoteDoc[] {
+// Repo folder for each note kind.
+const NOTE_DIRS = { notes: "notes", aims: "aims", ai: "ai-growth", prompts: "prompt-loop" } as const;
+
+export function getRepoNotes(kind: keyof typeof NOTE_DIRS = "notes"): NoteDoc[] {
+  const dir = NOTE_DIRS[kind];
   return readCollection<Omit<NoteDoc, "body">>(dir).map(({ meta, body }) => ({
     ...meta,
     tags: meta.tags ?? [],

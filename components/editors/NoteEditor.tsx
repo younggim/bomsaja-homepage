@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { postContent, localToday } from "@/lib/api";
-import { LIMITS, NOTE_KINDS, type NoteDoc, type NoteKind } from "@/lib/docs";
+import { LIMITS, newSlug, NOTE_KINDS, type Attachment, type NoteDoc, type NoteKind } from "@/lib/docs";
+import { AttachmentsField } from "./Attachments";
 import { ErrorText, Field, GhostButton, inputCls, MarkdownField, PrimaryButton } from "./ui";
 
 export function NoteEditor({
@@ -24,6 +25,10 @@ export function NoteEditor({
   const [tags, setTags] = useState(note?.tags.join(", ") ?? "");
   const [summary, setSummary] = useState(note?.summary ?? "");
   const [body, setBody] = useState(note?.body ?? "");
+  const [attachments, setAttachments] = useState<Attachment[]>(note?.attachments ?? []);
+  // New documents get their slug up front so attachments can be uploaded before the first save.
+  const [slug] = useState(() => note?.slug ?? newSlug());
+  const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,12 +48,12 @@ export function NoteEditor({
     e.preventDefault();
     if (!title.trim()) return setError("제목을 입력해 주세요.");
     run(async () => {
-      const { slug } = await postContent({
+      const saved = await postContent({
         kind,
-        slug: note?.slug,
-        data: { title, date, tags: tags.split(","), summary, body },
+        slug,
+        data: { title, date, tags: tags.split(","), summary, body, attachments },
       });
-      onSaved(slug);
+      onSaved(saved.slug);
     });
   };
 
@@ -78,10 +83,11 @@ export function NoteEditor({
         <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="회로이론, 기초" className={inputCls} />
       </Field>
       <MarkdownField value={body} onChange={setBody} />
+      <AttachmentsField kind={kind} slug={slug} value={attachments} onChange={setAttachments} onBusy={setUploading} />
       <ErrorText error={error} />
       <div className="flex flex-wrap items-center gap-2">
-        <PrimaryButton type="submit" busy={busy}>
-          {busy ? "저장 중…" : "저장"}
+        <PrimaryButton type="submit" busy={busy} disabled={uploading}>
+          {busy ? "저장 중…" : uploading ? "업로드 중…" : "저장"}
         </PrimaryButton>
         <GhostButton onClick={onCancel} disabled={busy}>
           <X size={14} aria-hidden /> 취소

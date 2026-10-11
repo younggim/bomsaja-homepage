@@ -10,6 +10,8 @@ const NAV = [
   { href: "/about", label: "About" },
   { href: "/projects", label: "Projects" },
   { href: "/aim", label: "AIM&Future" },
+  { href: "/ai-growth", label: "AI성장" },
+  { href: "/prompt-loop", label: "프롬프트&루프" },
   { href: "/notes", label: "Notes" },
   { href: "/references", label: "References" },
   { href: "/memo", label: "Memo" },
@@ -36,13 +38,13 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav aria-label="주요 메뉴" className="hidden lg:flex items-center gap-1">
+        <nav aria-label="주요 메뉴" className="hidden xl:flex items-center gap-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
-              className={`rounded-md px-3 py-2 text-sm transition-colors ${
+              className={`rounded-md px-2.5 py-2 text-sm whitespace-nowrap transition-colors ${
                 isActive(item.href) ? "text-accent-ink font-semibold" : "text-muted hover:text-fg"
               }`}
             >
@@ -52,7 +54,7 @@ export function SiteHeader() {
           <ThemeToggle />
         </nav>
 
-        <div className="flex items-center gap-1 lg:hidden">
+        <div className="flex items-center gap-1 xl:hidden">
           <ThemeToggle />
           <button
             type="button"
@@ -67,7 +69,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <nav aria-label="모바일 메뉴" className="border-t border-border lg:hidden">
+        <nav aria-label="모바일 메뉴" className="border-t border-border xl:hidden">
           <ul className="mx-auto max-w-5xl px-4 py-2">
             {NAV.map((item) => (
               <li key={item.href}>

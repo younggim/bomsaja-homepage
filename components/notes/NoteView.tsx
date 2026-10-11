@@ -6,6 +6,7 @@ import { NOTE_KINDS, type NoteDoc, type NoteKind } from "@/lib/docs";
 import { formatDate } from "@/lib/format";
 import { NoteEditor } from "@/components/editors/NoteEditor";
 import { EditToggleButton, UndoButton } from "@/components/editors/ui";
+import { AttachmentList } from "@/components/editors/Attachments";
 
 export function NoteView({ kind, note, html, edited }: { kind: NoteKind; note: NoteDoc; html: string; edited: boolean }) {
   const router = useRouter();
@@ -51,6 +52,7 @@ export function NoteView({ kind, note, html, edited }: { kind: NoteKind; note: N
         )}
       </div>
       <div className="prose-pcb mt-10" dangerouslySetInnerHTML={{ __html: html }} />
+      <AttachmentList items={note.attachments ?? []} />
     </>
   );
 }

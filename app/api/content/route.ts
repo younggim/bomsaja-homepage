@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { cleanMemo, cleanNote, cleanReferences, newSlug, SLUG_RE, type DocKind } from "@/lib/docs";
+import { cleanMemo, cleanNote, cleanReferences, newSlug, NOTE_KIND_IDS, SLUG_RE, type DocKind } from "@/lib/docs";
 import { saveRevision, undoRevision } from "@/lib/store";
 
 interface Body {
@@ -10,7 +10,7 @@ interface Body {
   items?: unknown;
 }
 
-const KINDS: DocKind[] = ["notes", "aims", "memos", "references"];
+const KINDS: DocKind[] = [...NOTE_KIND_IDS, "memos", "references"];
 
 function fail(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });

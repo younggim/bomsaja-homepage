@@ -42,6 +42,7 @@ export function NoteCard({ note, basePath = "/notes" }: { note: NoteMeta; basePa
       </time>
       <h3 className="mt-2 text-lg font-bold group-hover:text-accent-ink">{note.title}</h3>
       <p className="mt-2 flex-1 text-sm text-muted">{note.summary}</p>
+      {!!note.attachmentCount && <p className="mt-2 text-xs text-muted">📎 첨부 {note.attachmentCount}개</p>}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {note.tags.map((t) => (
           <span key={t} className="text-xs text-accent-ink">

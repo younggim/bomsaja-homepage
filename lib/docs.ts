@@ -10,6 +10,13 @@ import {
   type RefType,
 } from "@/content/references";
 
+export interface Attachment {
+  name: string;
+  url: string;
+  size: number;
+  type: string;
+}
+
 export interface NoteDoc {
   slug: string;
   title: string;
@@ -17,8 +24,9 @@ export interface NoteDoc {
   tags: string[];
   summary: string;
   body: string;
+  attachments?: Attachment[];
 }
-export type NoteMeta = Omit<NoteDoc, "body">;
+export type NoteMeta = Omit<NoteDoc, "body" | "attachments"> & { attachmentCount?: number };
 
 export interface MemoDoc {
   slug: string;
@@ -29,14 +37,82 @@ export interface MemoDoc {
 }
 export type MemoMeta = Omit<MemoDoc, "body">;
 
-export type DocKind = "notes" | "aims" | "memos" | "references";
-export type NoteKind = "notes" | "aims";
+export type NoteKind = "notes" | "aims" | "ai" | "prompts";
+export type DocKind = NoteKind | "memos" | "references";
+export const NOTE_KIND_IDS: NoteKind[] = ["notes", "aims", "ai", "prompts"];
 
 // Note-shaped collections share the editor and pages; only paths and labels differ.
 export const NOTE_KINDS: Record<NoteKind, { path: string; title: string; item: string; itemObj: string; itemSubj: string }> = {
   notes: { path: "/notes", title: "Lab Notes", item: "노트", itemObj: "노트를", itemSubj: "노트가" },
   aims: { path: "/aim", title: "AIM&Future", item: "글", itemObj: "글을", itemSubj: "글이" },
+  ai: { path: "/ai-growth", title: "AI성장", item: "자료", itemObj: "자료를", itemSubj: "자료가" },
+  prompts: { path: "/prompt-loop", title: "프롬프트&루프 연구", item: "연구 노트", itemObj: "연구 노트를", itemSubj: "연구 노트가" },
 };
+
+// Attachments: files uploaded to Blob under files/<kind>/<slug>/<timestamp>-<safe-name>.
+export const FILE_LIMITS = { bytes: 20 * 1024 * 1024, perDoc: 20, name: 120 };
+export const FILE_TYPES: Record<string, string> = {
+  pdf: "application/pdf",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  gif: "image/gif",
+  txt: "text/plain",
+  md: "text/markdown",
+  csv: "text/csv",
+  json: "application/json",
+  ipynb: "application/x-ipynb+json",
+  py: "text/x-python",
+  zip: "application/zip",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  hwp: "application/x-hwp",
+};
+export const FILE_PATH_RE = new RegExp(
+  `^files/(${NOTE_KIND_IDS.join("|")})/[a-z0-9][a-z0-9-]{1,79}/\\d{13}-[A-Za-z0-9._-]{1,100}$`,
+);
+
+export function fileExt(name: string): string {
+  return name.split(".").pop()?.toLowerCase() ?? "";
+}
+
+export function filePathname(kind: NoteKind, slug: string, name: string): string {
+  const ext = fileExt(name);
+  const base = name
+    .slice(0, name.length - ext.length - 1)
+    .normalize("NFKD")
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "file";
+  return `files/${kind}/${slug}/${Date.now()}-${base}.${ext}`;
+}
+
+function cleanAttachments(v: unknown): Attachment[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .slice(0, FILE_LIMITS.perDoc)
+    .map((a) => a as Partial<Attachment>)
+    .filter((a) => {
+      try {
+        const u = new URL(String(a.url));
+        return (
+          u.protocol === "https:" &&
+          u.hostname.endsWith(".public.blob.vercel-storage.com") &&
+          FILE_PATH_RE.test(decodeURIComponent(u.pathname.slice(1)))
+        );
+      } catch {
+        return false;
+      }
+    })
+    .map((a) => ({
+      name: str(a.name, FILE_LIMITS.name) || "file",
+      url: String(a.url),
+      size: Math.max(0, Number(a.size) || 0),
+      type: str(a.type, 120),
+    }));
+}
 
 export const LIMITS = { title: 120, summary: 300, tag: 20, tags: 8, body: 50_000, refs: 300, refText: 300 };
 
@@ -70,6 +146,7 @@ export function cleanNote(input: Partial<NoteDoc>, slug: string): NoteDoc {
       .slice(0, LIMITS.tags),
     summary: str(input.summary, LIMITS.summary),
     body: typeof input.body === "string" ? input.body.slice(0, LIMITS.body) : "",
+    attachments: cleanAttachments(input.attachments),
   };
 }
 
@@ -125,6 +202,6 @@ export function cleanReferences(items: unknown): Reference[] {
   });
 }
 
-export function noteMeta({ slug, title, date, tags, summary }: NoteDoc): NoteMeta {
-  return { slug, title, date, tags, summary };
+export function noteMeta({ slug, title, date, tags, summary, attachments }: NoteDoc): NoteMeta {
+  return { slug, title, date, tags, summary, attachmentCount: attachments?.length ?? 0 };
 }
