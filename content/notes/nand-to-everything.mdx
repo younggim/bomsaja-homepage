@@ -1,0 +1,20 @@
+---
+title: "NAND 하나로 모든 것을"
+date: "2026-10-01"
+tags: ["디지털 설계", "Nand2Tetris"]
+summary: "Nand2Tetris 1주차: 범용 게이트 NAND로 기본 논리 게이트 만들기"
+---
+
+## NAND는 범용 게이트
+
+NAND 게이트 하나만 있으면 NOT, AND, OR, XOR을 모두 만들 수 있습니다.
+
+| 게이트 | NAND 구성 |
+|---|---|
+| NOT a | `NAND(a, a)` |
+| a AND b | `NOT(NAND(a, b))` |
+| a OR b | `NAND(NOT a, NOT b)` |
+
+## 느낀 점
+
+함수 합성으로 프로그램을 쌓아 올리는 것과 게이트로 칩을 쌓아 올리는 것은 같은 사고방식입니다. 추상화 계층이 트랜지스터 바로 위까지 내려왔을 뿐입니다.

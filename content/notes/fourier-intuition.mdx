@@ -1,0 +1,26 @@
+---
+title: "푸리에 변환을 코드로 이해하기"
+date: "2026-09-18"
+tags: ["신호 및 시스템", "Python"]
+summary: "numpy FFT로 두 사인파를 섞고 다시 분리해 보며 주파수 영역을 직관적으로 이해하기"
+---
+
+## 실험
+
+```python
+import numpy as np
+
+fs = 1000                      # 샘플링 주파수 (Hz)
+t = np.arange(0, 1, 1 / fs)
+x = np.sin(2 * np.pi * 50 * t) + 0.5 * np.sin(2 * np.pi * 120 * t)
+
+X = np.fft.rfft(x)
+freqs = np.fft.rfftfreq(len(x), 1 / fs)
+peaks = freqs[np.argsort(np.abs(X))[-2:]]
+print(sorted(peaks))           # [50.0, 120.0]
+```
+
+## 정리
+
+- 시간 영역에서는 뒤섞인 파형이 주파수 영역에서는 **두 개의 뾰족한 피크**로 분리됩니다.
+- 샘플링 주파수의 절반(나이퀴스트 주파수)보다 높은 성분은 표현할 수 없습니다. 이것이 통신 시스템 설계의 출발점입니다.

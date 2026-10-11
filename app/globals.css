@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+/* Spring on a PCB: color tokens (program_guide 5장) */
+:root {
+  --bg: #fafaf7;
+  --fg: #1b1f1d;
+  --muted: #59625d;
+  --surface: #ffffff;
+  --border: #e2e6e0;
+  --accent: #2e8b57;
+  --accent-ink: #1f6b41;
+  --spring: #f4a7b9;
+  --spring-soft: #fdecf0;
+  --trace: #c9a227;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1411;
+    --fg: #e6ede8;
+    --muted: #9aa89f;
+    --surface: #151d19;
+    --border: #25322b;
+    --accent: #4fd18b;
+    --accent-ink: #4fd18b;
+    --spring: #f7b8c6;
+    --spring-soft: #2a1d21;
+    --trace: #e0be4a;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e1411;
+  --fg: #e6ede8;
+  --muted: #9aa89f;
+  --surface: #151d19;
+  --border: #25322b;
+  --accent: #4fd18b;
+  --accent-ink: #4fd18b;
+  --spring: #f7b8c6;
+  --spring-soft: #2a1d21;
+  --trace: #e0be4a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-spring: var(--spring);
+  --color-spring-soft: var(--spring-soft);
+  --color-trace: var(--trace);
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  word-break: keep-all;
+}
+
+::selection {
+  background: var(--spring);
+  color: #1b1f1d;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Theme toggle shows the icon of the theme it switches to */
+.theme-icon-sun {
+  display: none;
+}
+:root[data-theme="dark"] .theme-icon-sun {
+  display: block;
+}
+:root[data-theme="dark"] .theme-icon-moon {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-icon-sun {
+    display: block;
+  }
+  :root:not([data-theme="light"]) .theme-icon-moon {
+    display: none;
+  }
+}
+
+/* Rendered markdown for notes and project pages */
+.prose-pcb {
+  line-height: 1.8;
+}
+.prose-pcb h2 {
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--trace);
+}
+.prose-pcb h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.prose-pcb p,
+.prose-pcb ul,
+.prose-pcb ol,
+.prose-pcb table,
+.prose-pcb pre,
+.prose-pcb blockquote {
+  margin-bottom: 1rem;
+}
+.prose-pcb ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.prose-pcb ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+.prose-pcb li {
+  margin-bottom: 0.25rem;
+}
+.prose-pcb a {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-pcb strong {
+  font-weight: 700;
+}
+.prose-pcb code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--spring-soft);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.prose-pcb pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.prose-pcb pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+}
+.prose-pcb blockquote {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--spring);
+  background: var(--spring-soft);
+  border-radius: 0 8px 8px 0;
+}
+.prose-pcb blockquote p {
+  margin: 0;
+}
+.prose-pcb table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.prose-pcb th,
+.prose-pcb td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.prose-pcb th {
+  background: var(--surface);
+}
