@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { NoteMeta, ProjectMeta } from "@/lib/content";
+import type { ProjectMeta } from "@/lib/content";
+import type { NoteMeta } from "@/lib/docs";
 import { formatDate } from "@/lib/format";
 import { refTypes, type Reference } from "@/content/references";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { NoteMeta } from "@/lib/content";
+import type { NoteMeta } from "@/lib/docs";
 import { NoteCard } from "@/components/Cards";
 import { Chip } from "@/components/Chip";
 

@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import { marked } from "marked";
+import { renderMarkdown } from "./markdown";
+import type { MemoDoc, NoteDoc } from "./docs";
 
 export type ProjectTag = "Software" | "Embedded" | "Hardware";
 
@@ -15,24 +16,11 @@ export interface ProjectMeta {
   sample?: boolean;
 }
 
-export interface NoteMeta {
-  slug: string;
-  title: string;
-  date: string;
-  tags: string[];
-  summary: string;
-}
-
-export interface MemoMeta {
-  slug: string;
-  title: string;
-  date: string;
-  pinned?: boolean;
-}
+export type { NoteMeta, MemoMeta } from "./docs";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
-// Content is read synchronously so every page can be prerendered at build time.
+// Repo content is read synchronously; it is the seed that Blob edits (lib/store.ts) override.
 function readCollection<T>(dir: string): { meta: T; body: string }[] {
   const full = path.join(CONTENT_DIR, dir);
   return fs
@@ -41,15 +29,11 @@ function readCollection<T>(dir: string): { meta: T; body: string }[] {
     .map((file) => {
       const { data, content } = matter(fs.readFileSync(path.join(full, file), "utf8"));
       const slug = file.replace(/\.mdx?$/, "");
-      return { meta: { slug, ...data } as T, body: content };
+      return { meta: { slug, ...data } as T, body: content.trim() };
     })
     .sort((a, b) =>
       String((b.meta as { date: string }).date).localeCompare(String((a.meta as { date: string }).date)),
     );
-}
-
-function render(body: string): string {
-  return marked.parse(body, { async: false });
 }
 
 export function getProjects(): ProjectMeta[] {
@@ -58,19 +42,21 @@ export function getProjects(): ProjectMeta[] {
 
 export function getProject(slug: string) {
   const item = readCollection<ProjectMeta>("projects").find((p) => p.meta.slug === slug);
-  return item ? { meta: item.meta, html: render(item.body) } : null;
+  return item ? { meta: item.meta, html: renderMarkdown(item.body) } : null;
 }
 
-export function getNotes(): NoteMeta[] {
-  return readCollection<NoteMeta>("notes").map((n) => n.meta);
+export function getRepoNotes(): NoteDoc[] {
+  return readCollection<Omit<NoteDoc, "body">>("notes").map(({ meta, body }) => ({
+    ...meta,
+    tags: meta.tags ?? [],
+    body,
+  }));
 }
 
-export function getNote(slug: string) {
-  const item = readCollection<NoteMeta>("notes").find((n) => n.meta.slug === slug);
-  return item ? { meta: item.meta, html: render(item.body) } : null;
-}
-
-export function getMemos() {
-  const memos = readCollection<MemoMeta>("memos").map((m) => ({ meta: m.meta, html: render(m.body) }));
-  return [...memos.filter((m) => m.meta.pinned), ...memos.filter((m) => !m.meta.pinned)];
+export function getRepoMemos(): MemoDoc[] {
+  return readCollection<Omit<MemoDoc, "body">>("memos").map(({ meta, body }) => ({
+    ...meta,
+    pinned: Boolean(meta.pinned),
+    body,
+  }));
 }

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { learningPath, references } from "@/content/references";
+import { connection } from "next/server";
+import { learningPath, type Reference } from "@/content/references";
+import { loadReferences } from "@/lib/store";
 import { PageHeader } from "@/components/Cards";
-import { EditButton } from "@/components/EditButton";
-import { editUrl } from "@/lib/edit";
 import { ReferenceLibrary } from "./ReferenceLibrary";
 
 export const metadata: Metadata = {
@@ -11,49 +11,58 @@ export const metadata: Metadata = {
   description: "컴퓨터공학도가 전자공학으로 건너가며 모은 참고서, 오픈 강의, 도구 모음",
 };
 
-export default function ReferencesPage() {
-  const path = learningPath.map((id) => references.find((r) => r.id === id)!);
+function LearningPath({ items }: { items: Reference[] }) {
+  const path = learningPath.map((id) => items.find((r) => r.id === id)).filter((r): r is Reference => !!r);
+  if (!path.length) return null;
+  return (
+    <section aria-labelledby="path-title" className="mb-12 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+      <h2 id="path-title" className="font-bold">
+        🌸 CS 전공자를 위한 EE 입문 루트
+      </h2>
+      <ol className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        {path.map((r, i) => (
+          <li key={r.id} className="flex items-center gap-2 text-sm">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-trace font-mono text-xs">
+              {i + 1}
+            </span>
+            <span>
+              {r.title}
+              {r.author && <span className="text-muted"> · {r.author}</span>}
+            </span>
+            {i < path.length - 1 && (
+              <span aria-hidden className="hidden text-trace sm:inline">
+                ──
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
+async function LibrarySection() {
+  await connection();
+  const { items, edited } = await loadReferences();
+  return (
+    <>
+      <LearningPath items={items} />
+      <ReferenceLibrary items={items} edited={edited} />
+    </>
+  );
+}
+
+export default function ReferencesPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <PageHeader
-          eyebrow="References"
-          title="EE Reference Library"
-          desc="컴퓨터공학도가 전자공학으로 건너가며 모은 참고서"
-        />
-        <EditButton href={editUrl("content/references.ts")} label="자료 수정하기" />
-      </div>
-
-      <section
-        aria-labelledby="path-title"
-        className="mb-12 rounded-2xl border border-border bg-surface p-5 sm:p-6"
-      >
-        <h2 id="path-title" className="font-bold">
-          🌸 CS 전공자를 위한 EE 입문 루트
-        </h2>
-        <ol className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-          {path.map((r, i) => (
-            <li key={r.id} className="flex items-center gap-2 text-sm">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-trace font-mono text-xs">
-                {i + 1}
-              </span>
-              <span>
-                {r.title}
-                <span className="text-muted"> · {r.author}</span>
-              </span>
-              {i < path.length - 1 && (
-                <span aria-hidden className="hidden text-trace sm:inline">
-                  ──
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </section>
+      <PageHeader
+        eyebrow="References"
+        title="EE Reference Library"
+        desc="컴퓨터공학도가 전자공학으로 건너가며 모은 참고서. 누구나 자료를 추가하고 고칠 수 있어요."
+      />
 
       <Suspense fallback={<p className="text-muted">자료를 불러오는 중…</p>}>
-        <ReferenceLibrary />
+        <LibrarySection />
       </Suspense>
 
       <p className="mt-16 border-t border-border pt-6 text-xs text-muted">

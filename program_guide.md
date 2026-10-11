@@ -51,9 +51,9 @@ claude --version   # Claude Code
 | 콘텐츠 | `content/` 폴더의 **MDX** 파일 | 블로그와 학습 노트를 코드 수정 없이 추가 |
 | 아이콘 | `lucide-react` | 가벼운 SVG 아이콘 |
 | 배포 | **Vercel** (GitHub `main` 브랜치 push 시 자동 배포) | 환경 변수 없이 배포 가능 |
-| 사진 저장소 | **Vercel Blob** (`bomsaja-pictures`, 서울 icn1, public) | Pictures 페이지 전용 (4.7) |
+| 저장소 | **Vercel Blob** (`bomsaja-pictures`, 서울 icn1, public) | Pictures 사진(4.7), 사이트 내 수정 버전(4.6) |
 
-**제약 사항**: 기본은 외부 API 키나 DB를 쓰지 않는 **정적 사이트**입니다. **예외는 Pictures 페이지 하나**로, Vercel Blob을 쓰고 `BLOB_READ_WRITE_TOKEN` 환경 변수가 필요합니다. 이 토큰은 Blob 저장소를 프로젝트에 연결할 때 Vercel이 자동으로 넣어 주며, 로컬에서는 `vercel env pull`로 `.env.local`에 받습니다(git에는 올리지 않음).
+**제약 사항**: 기본은 외부 API 키나 DB를 쓰지 않는 **정적 사이트**입니다. **예외는 Pictures 페이지와 사이트 내 수정 기능(4.6)**으로, Vercel Blob을 쓰고 `BLOB_READ_WRITE_TOKEN` 환경 변수가 필요합니다. 이 토큰은 Blob 저장소를 프로젝트에 연결할 때 Vercel이 자동으로 넣어 주며, 로컬에서는 `vercel env pull`로 `.env.local`에 받습니다(git에는 올리지 않음).
 
 ---
 
@@ -72,6 +72,7 @@ claude --version   # Claude Code
 /contact         → Contact
 /api/pictures            → 사진 목록(GET), 설명 수정(PATCH), 삭제(DELETE)
 /api/pictures/upload     → 브라우저 직접 업로드용 토큰 발급(POST)
+/api/content             → Notes/Memo/References 저장, 삭제, 되돌리기(POST)
 ```
 
 ### 4.1 Home (`/`)
@@ -117,19 +118,22 @@ claude --version   # Claude Code
 - 이메일(`bomsaja890@gmail.com`), 전화(`010-5586-2034`, 누르면 바로 전화)를 둡니다. GitHub 링크는 표시하지 않습니다(`links.github`를 비워 둠). 폼은 만들지 않습니다.
 - 실제 값은 `content/profile.ts`의 `links`와 `contactMessage`에서 관리합니다.
 
-### 4.6 수정하기 버튼과 Memo (`/memo`)
-- **방식**: 사이트에서 바로 고치는 버튼은 **GitHub 웹 편집기**로 연결됩니다. 편집 후 **Commit changes**를 누르면 Vercel이 약 30초 안에 자동으로 다시 배포합니다. 저장소 쓰기 권한이 있는 사람만 저장할 수 있으므로 방문자는 내용을 바꿀 수 없습니다.
-- **Notes**: 목록에 `새 노트` 버튼(오늘 날짜가 들어간 frontmatter 양식으로 새 파일 생성), 상세 페이지에 `수정하기` 버튼.
-- **References**: 상단에 `자료 수정하기` 버튼(`content/references.ts` 편집).
-- **Memo**: `content/memos/*.md` 파일을 한 페이지에 모두 펼쳐 보여 줍니다. `새 메모`, 메모별 `수정하기` 버튼이 있고, frontmatter에 `pinned: true`를 넣으면 맨 위에 고정됩니다.
-  ```yaml
-  ---
-  title: "이번 주 할 일"
-  date: "2026-10-11"
-  pinned: false
-  ---
-  ```
-- 저장소 주소는 `content/profile.ts`의 `repo`(`younggim/bomsaja-homepage`, `main`)에서 관리합니다.
+### 4.6 사이트 안에서 바로 수정하기 (Notes, References, Memo)
+- **누구나** 로그인 없이 사이트에서 바로 수정하고 저장할 수 있습니다. 저장하면 **Vercel Blob**에 들어가고 즉시 반영됩니다(재배포 없음).
+- **Notes**: 목록에 `새 노트`, 상세 페이지에 `수정하기`(제목, 날짜, 요약, 태그, Markdown 본문, 미리보기, 삭제).
+- **References**: `자료 추가`, 카드마다 연필 버튼으로 수정과 삭제(분야, 유형, 난이도, 언어, 상태, 링크, 메모).
+- **Memo** (`/memo`): `새 메모`, 메모별 `수정하기`, `📌 맨 위에 고정`, 삭제.
+- **저장 구조**: 저장할 때마다 불변 버전 파일을 하나 만듭니다.
+  `edits/<notes|memos|references>/<slug>/<timestamp>-<rand>.json` → `{ data }` 또는 `{ deleted: true }`
+  화면에는 저장소의 원본 파일(`content/notes`, `content/memos`, `content/references.ts`)에 **가장 최신 버전을 덮어** 보여 줍니다. 버전마다 경로가 달라 CDN 캐시 문제가 없습니다.
+- **되돌리기**: 수정된 문서에는 `이전 버전으로 되돌리기` 링크가 보입니다. 가장 최신 버전 파일을 지워 직전 상태(또는 저장소 원본)로 돌아갑니다. 삭제도 버전으로 기록되므로 되돌리기로 복구할 수 있습니다.
+- **안전장치**
+  - Markdown 안의 HTML은 실행하지 않고 글자로 보여 줍니다(`<script>` 등 XSS 차단).
+  - 링크와 이미지는 `http(s)`, `mailto`, 상대 경로만 허용하고 `javascript:` 등은 무효화합니다.
+  - 참고 자료 링크는 `http(s)`만 저장합니다.
+  - 길이 제한: 제목 120자, 요약 300자, 태그 8개, 본문 5만 자, 참고 자료 300개.
+- **API**: `POST /api/content` `{ kind, action: save|delete|undo, slug?, data? | items? }`
+- **주의**: 누구나 고칠 수 있으므로 장난 편집이 생길 수 있습니다. 되돌리기로 복구하거나, Vercel 대시보드 → Storage → `bomsaja-pictures`의 `edits/` 폴더에서 버전 파일을 직접 정리합니다. 사이트에서 고친 내용은 git에 커밋되지 않으므로, 오래 남길 내용은 가끔 저장소 파일에 옮겨 적는 것을 권장합니다.
 
 ### 4.7 Pictures (`/pictures`)
 - **누구나** 로그인 없이 사진을 올리고, 설명과 올린 사람을 편집하고, 삭제할 수 있는 공용 사진첩입니다.
@@ -184,10 +188,12 @@ bomsaja-homepage/
 │  ├─ pictures/page.tsx + PictureGallery.tsx
 │  ├─ api/pictures/route.ts, api/pictures/upload/route.ts
 │  └─ contact/page.tsx
-├─ components/            # Timeline, Cards, ThemeToggle, PcbBackground, EditButton, NewFileButton
+├─ components/            # Timeline, Cards, ThemeToggle, PcbBackground, editors/(NoteEditor, MemoEditor, ReferenceForm)
 ├─ lib/
 │  ├─ content.ts          # MDX/MD 읽기 (projects, notes, memos)
-│  ├─ edit.ts             # GitHub 편집기 URL 생성
+│  ├─ docs.ts             # 편집 문서 타입과 검증
+│  ├─ store.ts            # Blob 버전 저장, 병합, 되돌리기
+│  ├─ markdown.ts         # 안전한 Markdown 렌더러 (XSS 차단)
 │  └─ pictures.ts         # 사진 경로 인코딩, 제한 값
 ├─ content/
 │  ├─ profile.ts          # 이름, 소개, 링크, 기술 스택, 로드맵, 저장소 (단일 진실 공급원)
@@ -219,7 +225,7 @@ bomsaja-homepage/
 | **7.5 References** | `content/references.ts` 작성, 분야 탭, 유형 필터, 검색, 링크 검증 | 모든 링크 응답 200, 분야별 3개 이상 등록 |
 | **8. 마감** | 메타 태그(OG 이미지, title, description), 파비콘, `bun run build` 통과 | 빌드 에러 0건 |
 | **9. 배포** | GitHub 저장소 생성, push, Vercel import | `.vercel.app` 주소에서 접속됨 |
-| **10. 편집 기능** | Notes/References 수정하기 버튼, Memo 페이지 | 버튼이 GitHub 편집기를 열고, 커밋 후 자동 반영 |
+| **10. 편집 기능** | Notes/References/Memo 사이트 내 수정·저장 (Vercel Blob 버전 저장, 되돌리기) | 저장 즉시 반영, XSS 차단·되돌리기 시험 통과 |
 | **11. Pictures** | Vercel Blob 저장소 생성, 업로드/편집/삭제 API, 갤러리 | 실제 Blob에서 업로드→수정→삭제 시험 통과 |
 
 ---
@@ -231,7 +237,7 @@ bomsaja-homepage/
 - 패키지 매니저는 반드시 Bun (npm/yarn 사용 금지)
 - 개인 정보(이름, 링크, 스택)는 content/profile.ts에만 작성하고 하드코딩 금지
 - 색상은 CSS 변수 토큰만 사용 (hex 직접 사용 금지)
-- 외부 API, 환경 변수, DB를 추가하지 않는다 (예외: Pictures의 Vercel Blob)
+- 외부 API, 환경 변수, DB를 추가하지 않는다 (예외: Pictures와 사이트 내 수정의 Vercel Blob)
 - 커밋 전 `bun run build`와 `bun run lint`가 통과해야 한다
 - UI 문구는 한국어 기본, 이름과 섹션 제목은 영어 병기
 - 참고 자료는 content/references.ts에만 추가하고, 공개 URL만 등록한다 (로그인 필요, 불법 PDF 금지)

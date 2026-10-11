@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { profile } from "@/content/profile";
-import { references } from "@/content/references";
-import { getNotes, getProjects } from "@/lib/content";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import { getProjects } from "@/lib/content";
+import { loadNotes, loadReferences } from "@/lib/store";
+import { noteMeta } from "@/lib/docs";
 import { PcbBackground } from "@/components/PcbBackground";
 import { Timeline } from "@/components/Timeline";
 import { NoteCard, ProjectCard, ReferenceCard } from "@/components/Cards";
@@ -23,10 +26,40 @@ function SectionTitle({ title, href, eyebrow }: { title: string; href?: string; 
   );
 }
 
+const GRID = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
+
+function CardsFallback() {
+  return <p className="text-sm text-muted">불러오는 중…</p>;
+}
+
+async function RecentNotes() {
+  await connection();
+  const { notes } = await loadNotes();
+  return (
+    <div className={GRID}>
+      {notes.slice(0, 3).map(noteMeta).map((n) => (
+        <NoteCard key={n.slug} note={n} />
+      ))}
+    </div>
+  );
+}
+
+async function NowReading() {
+  await connection();
+  const { items } = await loadReferences();
+  const reading = items.filter((r) => r.status === "읽는 중").slice(0, 3);
+  if (!reading.length) return <p className="text-sm text-muted">지금 읽고 있는 자료가 없습니다.</p>;
+  return (
+    <div className={GRID}>
+      {reading.map((r) => (
+        <ReferenceCard key={r.id} item={r} />
+      ))}
+    </div>
+  );
+}
+
 export default function Home() {
   const projects = getProjects().slice(0, 3);
-  const notes = getNotes().slice(0, 3);
-  const reading = references.filter((r) => r.status === "읽는 중").slice(0, 3);
 
   return (
     <>
@@ -82,20 +115,16 @@ export default function Home() {
 
         <section>
           <SectionTitle eyebrow="Lab Notes" title="최근 노트" href="/notes" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {notes.map((n) => (
-              <NoteCard key={n.slug} note={n} />
-            ))}
-          </div>
+          <Suspense fallback={<CardsFallback />}>
+            <RecentNotes />
+          </Suspense>
         </section>
 
         <section>
           <SectionTitle eyebrow="Now Reading" title="지금 읽는 중" href="/references" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {reading.map((r) => (
-              <ReferenceCard key={r.id} item={r} />
-            ))}
-          </div>
+          <Suspense fallback={<CardsFallback />}>
+            <NowReading />
+          </Suspense>
         </section>
       </div>
     </>

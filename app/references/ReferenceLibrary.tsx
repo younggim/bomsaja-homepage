@@ -2,22 +2,26 @@
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { PencilLine, Plus, Search } from "lucide-react";
 import {
   categories,
   levels,
-  references,
+
   refTypes,
   type RefCategory,
   type RefLevel,
   type RefType,
+  type Reference,
 } from "@/content/references";
 import { ReferenceCard } from "@/components/Cards";
 import { Chip } from "@/components/Chip";
+import { ReferenceForm } from "@/components/editors/ReferenceForm";
+import { UndoButton } from "@/components/editors/ui";
+import { postContent } from "@/lib/api";
 
 const CATEGORY_IDS = categories.map((c) => c.id) as string[];
 
-export function ReferenceLibrary() {
+export function ReferenceLibrary({ items, edited }: { items: Reference[]; edited: boolean }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -40,7 +44,7 @@ export function ReferenceLibrary() {
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return references.filter(
+    return items.filter(
       (r) =>
         (cat === "all" || r.category === cat) &&
         (types.length === 0 || types.includes(r.type)) &&
@@ -48,13 +52,74 @@ export function ReferenceLibrary() {
         (!lang || r.lang === lang) &&
         (!q || [r.title, r.author ?? "", r.note].some((s) => s.toLowerCase().includes(q))),
     );
-  }, [cat, types, level, lang, query]);
+  }, [items, cat, types, level, lang, query]);
 
   const current = categories.find((c) => c.id === cat);
   const hasFilters = types.length > 0 || level || lang || query;
 
+  // Inline editing: "new" for the add form, an id for an open card editor, or null.
+  const [editing, setEditing] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const commit = async (next: Reference[]) => {
+    setBusy(true);
+    setError("");
+    try {
+      await postContent({ kind: "references", items: next });
+      setEditing(null);
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveItem = (ref: Reference) => {
+    if (editing === "new") {
+      const id = (ref.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "ref").slice(0, 40);
+      return commit([{ ...ref, id: `${id}-${Date.now().toString(36)}` }, ...items]);
+    }
+    commit(items.map((r) => (r.id === editing ? { ...ref, id: r.id } : r)));
+  };
+
+  const deleteItem = (id: string) => {
+    if (!confirm("이 자료를 삭제할까요? '이전 버전으로 되돌리기'로 복구할 수 있습니다.")) return;
+    commit(items.filter((r) => r.id !== id));
+  };
+
+  const openEditor = (id: string) => {
+    setError("");
+    setEditing(id);
+  };
+
   return (
     <div>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        {editing !== "new" && (
+          <button
+            type="button"
+            onClick={() => openEditor("new")}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent-ink px-4 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90"
+          >
+            <Plus size={16} aria-hidden /> 자료 추가
+          </button>
+        )}
+        {edited && <UndoButton kind="references" slug="all" label="마지막 수정 되돌리기" />}
+      </div>
+      {editing === "new" && (
+        <div className="mb-6">
+          <ReferenceForm
+            defaultCategory={cat === "all" ? undefined : cat}
+            busy={busy}
+            error={error}
+            onSave={saveItem}
+            onCancel={() => setEditing(null)}
+          />
+        </div>
+      )}
+
       <label className="relative block">
         <span className="sr-only">자료 검색</span>
         <Search size={18} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -87,7 +152,7 @@ export function ReferenceLibrary() {
           >
             {c.label}
             <span className="ml-1.5 font-mono text-xs opacity-70">
-              {c.id === "all" ? references.length : references.filter((r) => r.category === c.id).length}
+              {c.id === "all" ? items.length : items.filter((r) => r.category === c.id).length}
             </span>
           </button>
         ))}
@@ -150,9 +215,32 @@ export function ReferenceLibrary() {
 
       {shown.length ? (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map((r) => (
-            <ReferenceCard key={r.id} item={r} />
-          ))}
+          {shown.map((r) =>
+            editing === r.id ? (
+              <ReferenceForm
+                key={r.id}
+                item={r}
+                busy={busy}
+                error={error}
+                onSave={saveItem}
+                onCancel={() => setEditing(null)}
+                onDelete={() => deleteItem(r.id)}
+              />
+            ) : (
+              <div key={r.id} className="relative">
+                <ReferenceCard item={r} />
+                <button
+                  type="button"
+                  onClick={() => openEditor(r.id)}
+                  aria-label={`${r.title} 수정하기`}
+                  title="수정하기"
+                  className="absolute bottom-3 right-3 rounded-md border border-border bg-surface p-1.5 text-muted transition hover:border-accent hover:text-accent-ink"
+                >
+                  <PencilLine size={14} aria-hidden />
+                </button>
+              </div>
+            ),
+          )}
         </div>
       ) : (
         <p className="mt-10 rounded-xl border border-dashed border-border p-10 text-center text-muted">

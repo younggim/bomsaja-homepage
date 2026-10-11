@@ -7,7 +7,8 @@
 - 패키지 매니저는 반드시 Bun (npm/yarn 사용 금지)
 - 개인 정보(이름, 링크, 스택)는 content/profile.ts에만 작성하고 하드코딩 금지
 - 색상은 CSS 변수 토큰만 사용 (hex 직접 사용 금지). 토큰은 app/globals.css에 정의
-- 외부 API, 환경 변수, DB를 추가하지 않는다 (예외: Pictures의 Vercel Blob, program_guide 4.7)
+- 외부 API, 환경 변수, DB를 추가하지 않는다 (예외: Pictures와 사이트 내 수정의 Vercel Blob, program_guide 4.6·4.7)
+- 사용자 입력 Markdown은 반드시 lib/markdown.ts의 renderMarkdown으로 렌더링한다 (XSS 차단)
 - .env.local(토큰)은 절대 커밋하지 않는다
 - 커밋 전 `bun run build`가 통과해야 한다
 - UI 문구는 한국어 기본, 이름과 섹션 제목은 영어 병기
