@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { getRepoNotes } from "@/lib/content";
 import { loadNotes } from "@/lib/store";
 import { renderMarkdown } from "@/lib/markdown";
-import { NoteView } from "./NoteView";
+import { NoteView } from "@/components/notes/NoteView";
 
 export const metadata: Metadata = { title: "Lab Notes" };
 
@@ -21,7 +21,7 @@ async function NoteSection({ params }: { params: Promise<{ slug: string }> }) {
   const { notes, edited } = await loadNotes();
   const note = notes.find((n) => n.slug === slug);
   if (!note) notFound();
-  return <NoteView note={note} html={renderMarkdown(note.body)} edited={edited.has(slug)} />;
+  return <NoteView kind="notes" note={note} html={renderMarkdown(note.body)} edited={edited.has(slug)} />;
 }
 
 export default function NotePage({ params }: PageProps<"/notes/[slug]">) {

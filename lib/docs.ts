@@ -29,7 +29,14 @@ export interface MemoDoc {
 }
 export type MemoMeta = Omit<MemoDoc, "body">;
 
-export type DocKind = "notes" | "memos" | "references";
+export type DocKind = "notes" | "aims" | "memos" | "references";
+export type NoteKind = "notes" | "aims";
+
+// Note-shaped collections share the editor and pages; only paths and labels differ.
+export const NOTE_KINDS: Record<NoteKind, { path: string; title: string; item: string; itemObj: string; itemSubj: string }> = {
+  notes: { path: "/notes", title: "Lab Notes", item: "노트", itemObj: "노트를", itemSubj: "노트가" },
+  aims: { path: "/aim", title: "AIM&Future", item: "글", itemObj: "글을", itemSubj: "글이" },
+};
 
 export const LIMITS = { title: 120, summary: 300, tag: 20, tags: 8, body: 50_000, refs: 300, refText: 300 };
 

@@ -14,4 +14,4 @@
 - UI 문구는 한국어 기본, 이름과 섹션 제목은 영어 병기
 - 참고 자료는 content/references.ts에만 추가하고, 공개 URL만 등록한다 (로그인 필요, 불법 PDF 금지)
 - 참고 자료를 추가하거나 수정한 뒤에는 `bun run check-links`로 링크가 실제로 열리는지 확인한다
-- 프로젝트는 content/projects/*.mdx, 학습 노트는 content/notes/*.mdx, 메모는 content/memos/*.md에 frontmatter와 함께 추가한다
+- 프로젝트는 content/projects/*.mdx, 학습 노트는 content/notes/*.mdx, AIM&Future는 content/aims/*.md, 메모는 content/memos/*.md에 frontmatter와 함께 추가한다

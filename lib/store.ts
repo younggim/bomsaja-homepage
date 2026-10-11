@@ -5,10 +5,10 @@
 import { del, list, put } from "@vercel/blob";
 import { references as repoReferences, type Reference } from "@/content/references";
 import { getRepoMemos, getRepoNotes } from "./content";
-import type { DocKind, MemoDoc, NoteDoc } from "./docs";
+import type { DocKind, MemoDoc, NoteDoc, NoteKind } from "./docs";
 
 const PREFIX = "edits/";
-const REV_RE = /^edits\/(notes|memos|references)\/([a-z0-9-]+)\/(\d{13})-[a-z0-9]+\.json$/;
+const REV_RE = /^edits\/(notes|aims|memos|references)\/([a-z0-9-]+)\/(\d{13})-[a-z0-9]+\.json$/;
 
 interface Revision {
   slug: string;
@@ -75,8 +75,8 @@ async function merge<T extends { slug: string }>(
 
 const byDateDesc = <T extends { date: string }>(a: T, b: T) => b.date.localeCompare(a.date);
 
-export async function loadNotes() {
-  const { docs, edited } = await merge<NoteDoc>("notes", getRepoNotes());
+export async function loadNotes(kind: NoteKind = "notes") {
+  const { docs, edited } = await merge<NoteDoc>(kind, getRepoNotes(kind));
   return { notes: docs.sort(byDateDesc), edited };
 }
 

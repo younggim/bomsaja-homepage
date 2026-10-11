@@ -5,7 +5,7 @@ import type { NoteMeta } from "@/lib/docs";
 import { NoteCard } from "@/components/Cards";
 import { Chip } from "@/components/Chip";
 
-export function NotesFilter({ notes }: { notes: NoteMeta[] }) {
+export function NotesFilter({ notes, basePath }: { notes: NoteMeta[]; basePath: string }) {
   const tags = Array.from(new Set(notes.flatMap((n) => n.tags)));
   const [tag, setTag] = useState<string | null>(null);
   const shown = tag ? notes.filter((n) => n.tags.includes(tag)) : notes;
@@ -24,7 +24,7 @@ export function NotesFilter({ notes }: { notes: NoteMeta[] }) {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((n) => (
-          <NoteCard key={n.slug} note={n} />
+          <NoteCard key={n.slug} note={n} basePath={basePath} />
         ))}
       </div>
     </>

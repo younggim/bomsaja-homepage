@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { NoteDoc } from "@/lib/docs";
+import { NOTE_KINDS, type NoteDoc, type NoteKind } from "@/lib/docs";
 import { formatDate } from "@/lib/format";
 import { NoteEditor } from "@/components/editors/NoteEditor";
 import { EditToggleButton, UndoButton } from "@/components/editors/ui";
 
-export function NoteView({ note, html, edited }: { note: NoteDoc; html: string; edited: boolean }) {
+export function NoteView({ kind, note, html, edited }: { kind: NoteKind; note: NoteDoc; html: string; edited: boolean }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
 
@@ -15,13 +15,14 @@ export function NoteView({ note, html, edited }: { note: NoteDoc; html: string; 
     return (
       <div className="mt-6">
         <NoteEditor
+          kind={kind}
           note={note}
           onCancel={() => setEditing(false)}
           onSaved={() => {
             setEditing(false);
             router.refresh();
           }}
-          onDeleted={() => router.push("/notes")}
+          onDeleted={() => router.push(NOTE_KINDS[kind].path)}
         />
       </div>
     );
@@ -45,7 +46,7 @@ export function NoteView({ note, html, edited }: { note: NoteDoc; html: string; 
         ))}
         {edited && (
           <span className="ml-auto">
-            <UndoButton kind="notes" slug={note.slug} />
+            <UndoButton kind={kind} slug={note.slug} />
           </span>
         )}
       </div>

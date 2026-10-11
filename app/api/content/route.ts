@@ -10,7 +10,7 @@ interface Body {
   items?: unknown;
 }
 
-const KINDS: DocKind[] = ["notes", "memos", "references"];
+const KINDS: DocKind[] = ["notes", "aims", "memos", "references"];
 
 function fail(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       await saveRevision(kind, slug, { data: { slug, items } });
       return NextResponse.json({ slug });
     }
-    const data = kind === "notes" ? cleanNote(body.data ?? {}, slug) : cleanMemo(body.data ?? {}, slug);
+    const data = kind === "memos" ? cleanMemo(body.data ?? {}, slug) : cleanNote(body.data ?? {}, slug);
     await saveRevision(kind, slug, { data });
     return NextResponse.json({ slug });
   } catch {

@@ -4,14 +4,14 @@ import { connection } from "next/server";
 import { loadNotes } from "@/lib/store";
 import { noteMeta } from "@/lib/docs";
 import { PageHeader } from "@/components/Cards";
-import { NotesBoard } from "./NotesBoard";
+import { NotesBoard } from "@/components/notes/NotesBoard";
 
 export const metadata: Metadata = { title: "Lab Notes" };
 
 async function NotesSection() {
   await connection();
   const { notes } = await loadNotes();
-  return <NotesBoard notes={notes.map(noteMeta)} />;
+  return <NotesBoard kind="notes" notes={notes.map(noteMeta)} />;
 }
 
 export default function NotesPage() {

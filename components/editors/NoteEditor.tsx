@@ -3,15 +3,17 @@
 import { useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { postContent, localToday } from "@/lib/api";
-import { LIMITS, type NoteDoc } from "@/lib/docs";
+import { LIMITS, NOTE_KINDS, type NoteDoc, type NoteKind } from "@/lib/docs";
 import { ErrorText, Field, GhostButton, inputCls, MarkdownField, PrimaryButton } from "./ui";
 
 export function NoteEditor({
+  kind = "notes",
   note,
   onSaved,
   onCancel,
   onDeleted,
 }: {
+  kind?: NoteKind;
   note?: NoteDoc;
   onSaved: (slug: string) => void;
   onCancel: () => void;
@@ -42,7 +44,7 @@ export function NoteEditor({
     if (!title.trim()) return setError("제목을 입력해 주세요.");
     run(async () => {
       const { slug } = await postContent({
-        kind: "notes",
+        kind,
         slug: note?.slug,
         data: { title, date, tags: tags.split(","), summary, body },
       });
@@ -51,16 +53,16 @@ export function NoteEditor({
   };
 
   const remove = () => {
-    if (!note || !confirm("이 노트를 삭제할까요? '이전 버전으로 되돌리기'로 복구할 수 있습니다.")) return;
+    if (!note || !confirm(`이 ${NOTE_KINDS[kind].itemObj} 삭제할까요? '이전 버전으로 되돌리기'로 복구할 수 있습니다.`)) return;
     run(async () => {
-      await postContent({ kind: "notes", slug: note.slug, action: "delete" });
+      await postContent({ kind, slug: note.slug, action: "delete" });
       onDeleted?.();
     });
   };
 
   return (
     <form onSubmit={save} className="space-y-4 rounded-2xl border-2 border-accent bg-surface p-5 sm:p-6">
-      <p className="font-mono text-xs text-accent-ink">{note ? "노트 수정" : "새 노트"}</p>
+      <p className="font-mono text-xs text-accent-ink">{note ? `${NOTE_KINDS[kind].item} 수정` : `새 ${NOTE_KINDS[kind].item}`}</p>
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
         <Field label="제목">
           <input value={title} maxLength={LIMITS.title} onChange={(e) => setTitle(e.target.value)} className={inputCls} />

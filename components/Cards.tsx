@@ -31,10 +31,10 @@ export function ProjectCard({ project }: { project: ProjectMeta }) {
   );
 }
 
-export function NoteCard({ note }: { note: NoteMeta }) {
+export function NoteCard({ note, basePath = "/notes" }: { note: NoteMeta; basePath?: string }) {
   return (
     <Link
-      href={`/notes/${note.slug}`}
+      href={`${basePath}/${note.slug}`}
       className="group flex h-full flex-col rounded-xl border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:border-accent"
     >
       <time dateTime={note.date} className="font-mono text-xs text-muted">

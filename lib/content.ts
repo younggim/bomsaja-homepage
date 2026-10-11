@@ -45,8 +45,8 @@ export function getProject(slug: string) {
   return item ? { meta: item.meta, html: renderMarkdown(item.body) } : null;
 }
 
-export function getRepoNotes(): NoteDoc[] {
-  return readCollection<Omit<NoteDoc, "body">>("notes").map(({ meta, body }) => ({
+export function getRepoNotes(dir: "notes" | "aims" = "notes"): NoteDoc[] {
+  return readCollection<Omit<NoteDoc, "body">>(dir).map(({ meta, body }) => ({
     ...meta,
     tags: meta.tags ?? [],
     body,
